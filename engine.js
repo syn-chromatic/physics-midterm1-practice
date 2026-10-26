@@ -349,8 +349,6 @@ function summaryHTML(){
     <article class="qcard" aria-labelledby="sum-h">
       <h2 id="sum-h">${n===QS.length?`All ${QS.length} solved`:`${n} of ${QS.length} solved`}</h2>
       <div class="tbl-wrap"><table class="sum-tbl"><thead><tr><th>Question</th><th>Status</th><th>This round</th><th>Best</th></tr></thead><tbody>${rows}</tbody></table></div>
-      <p>${n===QS.length?"The best way to lock these in: run them again with new numbers and aim for fewer hints each time.":"Go back to the open questions. You can always open the next hint if you're stuck."}</p>
-      <p>When you're ready for more, ask Claude in the chat for a new set.${CFG.next?` ${CFG.next}`:""}</p>
       <div class="btn-row"><button class="btn btn-primary" data-act="renewall">Practise all ${QS.length} with new numbers</button><button class="btn" data-act="go" data-i="0">Back to question 1</button></div>
     </article>
   </div>`;
