@@ -344,3 +344,6 @@ input[type=range]{width:100%;accent-color:var(--blue)}
   #side .chips{flex-direction:column;flex-wrap:nowrap;gap:6px;margin-top:0}
   #side .chip{width:100%;padding:6px 10px 6px 8px}
 }
+
+/* Inputs: padding and border count inside the width, so they never overlap the unit */
+input,button,select,textarea{box-sizing:border-box}
