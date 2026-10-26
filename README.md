@@ -1,1 +1,1 @@
-# physics-midterm1-practice
+# Physics Midterm 1 Practice
