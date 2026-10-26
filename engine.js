@@ -1,4 +1,4 @@
-/* Physics Hint Ladder engine v1
+/* Physics Midterm 1 Practice engine v1
    A page loads engine.css + engine.js, then calls HL.start({id, setName, lede, next, questions:[...]}).
    Helpers for writing questions are on window.HL. HL.selfTest() checks every question and variant. */
 (function(){
@@ -217,8 +217,7 @@ function sheetHTML(){
 function headHTML(){
   return `<header class="top">
     <p class="eyebrow">${CFG.eyebrow||`Physics exam practice${CFG.setName?` · ${CFG.setName}`:""} · ${QS.length} questions`}</p>
-    <h1>${CFG.title||"Physics Hint Ladder"}${CFG.setName?` <span class="h1-set">${CFG.setName}</span>`:""}</h1>
-    <p class="lede">${CFG.lede||"Try each question on your own first. If you get stuck, open the hints one at a time. They start with a small nudge and end with the full solution."}</p>
+    <h1>${CFG.title||"Physics Midterm 1 Practice"}${CFG.setName?` <span class="h1-set">${CFG.setName}</span>`:""}</h1>
   </header>`;
 }
 function sideHTML(){
