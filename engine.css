@@ -347,3 +347,7 @@ input[type=range]{width:100%;accent-color:var(--blue)}
 
 /* Inputs: padding and border count inside the width, so they never overlap the unit */
 input,button,select,textarea{box-sizing:border-box}
+
+/* Question scene: an animation of the situation, shown above the answers */
+.scene{border:1px solid var(--rule);border-radius:6px;background:var(--card-2);overflow:hidden;max-width:640px;width:100%}
+.scene canvas{display:block;width:100%;height:auto;aspect-ratio:600/220}

@@ -119,7 +119,8 @@ function makeLoop(fn){
   const tick=ts=>{if(!L.alive)return;const dt=L.last?Math.min(0.05,(ts-L.last)/1000):0;L.last=ts;try{fn(dt);}catch(e){L.alive=false;return;}L.raf=requestAnimationFrame(tick);};
   L.raf=requestAnimationFrame(tick);loops.push(L);return L;
 }
-function stopLoops(){loops.forEach(L=>{L.alive=false;cancelAnimationFrame(L.raf);});loops=[];}
+let cleanups=[];
+function stopLoops(){loops.forEach(L=>{L.alive=false;cancelAnimationFrame(L.raf);});loops=[];cleanups.forEach(f=>{try{f();}catch(e){}});cleanups=[];}
 
 /* ---------- "See it" presets ---------- */
 /* Slider with bars. cfgFn(p,c) returns {note,label,unit,min,max,step,value,bars:[{label,segs:[{cls,name,frac:(x)=>0..1}]}],read:(x)=>html} */
@@ -304,6 +305,72 @@ function vizHTML(q,s,p,c){
   if(!q.viz||!(allSolved(q)||s.hints>=5)) return "";
   return `<section class="sec" aria-labelledby="viz-h"><div class="sec-head"><h2 id="viz-h">See it</h2></div><div id="viz-root" style="display:flex;flex-direction:column;gap:12px">${q.viz.html(p,c)}</div></section>`;
 }
+/* ---------- question scenes: an always-on animation of the situation (window.HL_SCENES, keyed by id or id/level) ---------- */
+const sceneOf=q=>{const S=window.HL_SCENES||{};return q.scene||S[q.id+(q.level?"/"+q.level:"")]||S[q.id]||null;};
+function sceneColors(){const cs=getComputedStyle(document.documentElement),v=(n,d)=>cs.getPropertyValue(n).trim()||d;
+  return {ink:v("--ink","#14244a"),ink2:v("--ink-2","#55637f"),blue:v("--blue","#2346a8"),blueSoft:v("--blue-soft","#e7edfa"),heat:v("--heat","#d4602a"),
+    marker:v("--marker","#fbe26a"),rule:v("--rule","#d3dbe8"),bg:v("--card-2","#f6f8fd"),card:v("--card","#fff"),ok:v("--ok","#16714a"),bad:v("--bad","#b8352b")};}
+function makeKit(g,W,H){
+  const K={g,W,H,col:sceneColors()};
+  const C=x=>K.col[x]||x;
+  const paint=o=>{if(o.fill){g.fillStyle=C(o.fill);g.fill();}if(o.c!==false){g.strokeStyle=C(o.c||"ink");g.lineWidth=o.w||2;g.lineJoin="round";g.lineCap="round";g.setLineDash(o.dash||[]);g.stroke();}};
+  const wrap=(o,fn)=>{g.save();if(o&&o.alpha!=null)g.globalAlpha=Math.max(0,Math.min(1,o.alpha));fn();g.restore();};
+  K.line=(x1,y1,x2,y2,o={})=>wrap(o,()=>{g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);paint(Object.assign({},o,{fill:null}));});
+  K.poly=(pts,o={})=>wrap(o,()=>{if(pts.length<2)return;g.beginPath();pts.forEach((q,i)=>i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]));if(o.close)g.closePath();paint(o);});
+  K.circle=(x,y,r,o={})=>wrap(o,()=>{g.beginPath();g.arc(x,y,Math.max(0,r),0,Math.PI*2);paint(o);});
+  K.arc=(x,y,r,a0,a1,o={})=>wrap(o,()=>{g.beginPath();g.arc(x,y,Math.max(0,r),a0,a1,!!o.ccw);paint(Object.assign({},o,{fill:null}));});
+  K.ellipse=(x,y,rx,ry,o={})=>wrap(o,()=>{g.beginPath();g.ellipse(x,y,Math.max(0,rx),Math.max(0,ry),o.rot||0,0,Math.PI*2);paint(o);});
+  K.rect=(x,y,w,h,o={})=>wrap(o,()=>{g.beginPath();const r=Math.min(o.r||0,Math.abs(w)/2,Math.abs(h)/2);if(r&&g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h);paint(o);});
+  K.arrow=(x1,y1,x2,y2,o={})=>{const a=Math.atan2(y2-y1,x2-x1),L=Math.hypot(x2-x1,y2-y1);if(L<2)return;const hs=Math.min(o.head||9,L*0.6);
+    K.line(x1,y1,x2-Math.cos(a)*hs*0.6,y2-Math.sin(a)*hs*0.6,{c:o.c,w:o.w||2.2,dash:o.dash,alpha:o.alpha});
+    K.poly([[x2,y2],[x2-hs*Math.cos(a-0.42),y2-hs*Math.sin(a-0.42)],[x2-hs*Math.cos(a+0.42),y2-hs*Math.sin(a+0.42)]],{fill:o.c||"ink",c:false,close:true,alpha:o.alpha});};
+  const font=o=>`${o.italic?"italic ":""}${o.bold?"700 ":""}${(o.size||13)*(K.ts||1)}px ${o.serif?'"STIX Two Text",Cambria,"Times New Roman",serif':'"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif'}`;
+  K.text=(s,x,y,o={})=>wrap(o,()=>{g.fillStyle=C(o.c||"ink");g.font=font(o);g.textAlign=o.align||"center";g.textBaseline=o.base||"middle";g.fillText(s,x,y);});
+  K.tag=(s,x,y,o={})=>{g.save();g.font=font({size:o.size||12});const w=g.measureText(s).width+12,h=(o.size||12)*(K.ts||1)+9;g.restore();
+    const ax=o.align==="left"?x:o.align==="right"?x-w:x-w/2;
+    K.rect(ax,y-h/2,w,h,{fill:"card",c:o.c||"ink2",w:1,r:4,alpha:o.alpha});K.text(s,ax+w/2,y+0.5,{c:o.c||"ink",size:o.size||12,alpha:o.alpha});};
+  K.ground=(y,x1=0,x2=W,o={})=>{K.line(x1,y,x2,y,{c:o.c||"ink",w:2});for(let x=x1+6;x<x2;x+=12)K.line(x,y+2,x-7,y+10,{c:"rule",w:1.2});};
+  K.wall=(x,y1,y2)=>{K.line(x,y1,x,y2,{w:3});for(let y=y1+3;y<y2;y+=10)K.line(x,y,x-8,y+7,{c:"rule",w:1.2});};
+  K.ceiling=(y,x1,x2)=>{K.line(x1,y,x2,y,{w:3});for(let x=x1+3;x<x2;x+=10)K.line(x,y,x+7,y-8,{c:"rule",w:1.2});};
+  K.spring=(x1,y1,x2,y2,o={})=>{const n=o.coils||12,amp=o.amp||8,dx=x2-x1,dy=y2-y1,L=Math.hypot(dx,dy)||1,ux=dx/L,uy=dy/L,nx=-uy,ny=ux,lead=Math.min(10,L*0.15);
+    const pts=[[x1,y1],[x1+ux*lead,y1+uy*lead]];for(let i=0;i<n;i++){const d=lead+(L-2*lead)*(i+0.5)/n,sd=i%2?1:-1;pts.push([x1+ux*d+nx*amp*sd,y1+uy*d+ny*amp*sd]);}
+    pts.push([x2-ux*lead,y2-uy*lead],[x2,y2]);K.poly(pts,{c:o.c||"blue",w:o.w||2});};
+  K.wheel=(x,y,r,ang,o={})=>{K.circle(x,y,r,{fill:"card",c:o.c||"ink",w:2});for(let i=0;i<3;i++){const a=ang+i*Math.PI/3;K.line(x-Math.cos(a)*r*0.78,y-Math.sin(a)*r*0.78,x+Math.cos(a)*r*0.78,y+Math.sin(a)*r*0.78,{c:o.c||"ink",w:1.2});}};
+  K.car=(x,y,o={})=>{const s=o.s||1,ang=o.ang||0,body=o.body||"blue";
+    K.poly([[x-22*s,y-29*s],[x-14*s,y-44*s],[x+12*s,y-44*s],[x+23*s,y-29*s]],{fill:body,c:"ink",w:1.5,close:true});
+    K.rect(x-37*s,y-30*s,74*s,19*s,{fill:body,c:"ink",w:1.5,r:5*s});
+    K.poly([[x-17*s,y-31*s],[x-11*s,y-41*s],[x-2*s,y-41*s],[x-2*s,y-31*s]],{fill:"card",c:false,close:true,alpha:0.9});
+    K.poly([[x+2*s,y-31*s],[x+2*s,y-41*s],[x+10*s,y-41*s],[x+18*s,y-31*s]],{fill:"card",c:false,close:true,alpha:0.9});
+    K.rect(x+32*s,y-27*s,5*s,4*s,{fill:"marker",c:false});K.rect(x-38*s,y-27*s,4*s,6*s,{fill:o.brake?"bad":"rule",c:false});
+    if(o.brake)K.circle(x-40*s,y-24*s,6*s,{fill:"bad",c:false,alpha:0.25});
+    K.wheel(x-21*s,y-9*s,9*s,ang);K.wheel(x+21*s,y-9*s,9*s,ang);};
+  K.person=(x,y,o={})=>{const s=o.s||1,c=o.c||"ink",lean=o.lean||0;const hx=x+lean*s;
+    K.circle(hx,y-58*s,7*s,{fill:"card",c,w:2});K.line(hx,y-51*s,x,y-24*s,{c,w:2.4});K.line(x,y-24*s,x-8*s,y,{c,w:2.4});K.line(x,y-24*s,x+8*s,y,{c,w:2.4});
+    (o.arms||[[-12,-30],[12,-30]]).forEach(a=>K.line(hx+(x-hx)*0.25,y-45*s,x+a[0]*s,y+a[1]*s,{c,w:2}));};
+  K.dim=(x1,x2,y,label,o={})=>{const c=o.c||"ink2";K.line(x1,y,x2,y,{c,w:1.2});K.line(x1,y-5,x1,y+5,{c,w:1.2});K.line(x2,y-5,x2,y+5,{c,w:1.2});if(label)K.tag(label,(x1+x2)/2,y,{size:11});};
+  K.vdim=(x,y1,y2,label,o={})=>{const c=o.c||"ink2";K.line(x,y1,x,y2,{c,w:1.2});K.line(x-5,y1,x+5,y1,{c,w:1.2});K.line(x-5,y2,x+5,y2,{c,w:1.2});if(label)K.tag(label,x,(y1+y2)/2,{size:11});};
+  K.ease=u=>u<=0?0:u>=1?1:u*u*(3-2*u);
+  K.clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  K.mod=(a,b)=>((a%b)+b)%b;
+  K.fmt=fmt;
+  return K;
+}
+function setupScene(q){
+  const sc=sceneOf(q),cv=$("#scene-cv");if(!sc||!cv||!cv.getContext)return;
+  const g=cv.getContext("2d");if(!g)return;
+  const p=state.qs[q.id].params,c=q.calc(p),W=600,H=sc.h||220,K=makeKit(g,W,H);
+  let scale=1,t=0,visible=true,frame=0;
+  const size=()=>{const r=cv.getBoundingClientRect(),dpr=Math.min(2,window.devicePixelRatio||1),w=Math.max(1,r.width);cv.width=Math.round(w*dpr);cv.height=Math.round(w*H/W*dpr);scale=cv.width/W;K.ts=Math.max(1,Math.min(1.6,9.5/(11*w/W)));};
+  const draw=tt=>{g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cv.width,cv.height);g.setTransform(scale,0,0,scale,0,0);
+    try{sc.draw(K,tt,p,c);}catch(e){(window.__sceneErrs=window.__sceneErrs||[]).push(q.id+": "+(e&&e.message||e));}};
+  size();
+  const onResize=()=>{size();draw(t);};window.addEventListener("resize",onResize);cleanups.push(()=>window.removeEventListener("resize",onResize));
+  if("IntersectionObserver" in window){const io=new IntersectionObserver(es=>{visible=es[0].isIntersecting;});io.observe(cv);cleanups.push(()=>io.disconnect());}
+  if(sc.reset)sc.reset();
+  if(reduceMotion){draw(sc.still!=null?sc.still:1.5);return;}
+  draw(0);
+  makeLoop(dt=>{t+=dt;if(++frame%30===0)K.col=sceneColors();if(visible)draw(t);});
+}
 function setupViz(q){
   const root=$("#viz-root");if(!root||!q.viz||!q.viz.setup)return;
   const p=state.qs[q.id].params;
@@ -319,6 +386,7 @@ function questionHTML(q){
     <article class="qcard" aria-labelledby="q-title">
       <div class="q-meta"><span class="tk-label" id="q-title">Question ${idx+1} of ${QS.length}</span><span class="tag">${q.topic}</span>${q.level?`<span class="tag tag-set">${q.level}</span>`:""}${CFG.sets&&q.set?`<span class="tag tag-set">${setLabel(q.set)}</span>`:""}<span class="small">${q.hw||""}</span></div>
       <p class="qtext">${q.text(p,G,T)}</p>
+      ${sceneOf(q)?`<div class="scene" aria-hidden="true"><canvas id="scene-cv"></canvas></div>`:""}
       <p class="small" style="margin-top:-8px">Words with a dotted underline explain themselves when you click them.</p>
       ${def}
       <div class="answers">
@@ -359,7 +427,7 @@ function render(){
   $("#top").innerHTML=headHTML();$("#side").innerHTML=sideHTML();
   const main=$("#main");
   if(state.cur>=QS.length) main.innerHTML=summaryHTML();
-  else{main.innerHTML=questionHTML(QS[state.cur]);setupViz(QS[state.cur]);}
+  else{main.innerHTML=questionHTML(QS[state.cur]);setupViz(QS[state.cur]);setupScene(QS[state.cur]);}
   save();
 }
 function scrollToEl(el,block){if(el)el.scrollIntoView({behavior:reduceMotion?"auto":"smooth",block:block||"nearest"});}
@@ -499,7 +567,7 @@ function start(cfg){
 }
 
 window.HL={
-  version:6,start,selfTest,debug,
+  version:7,start,selfTest,debug,
   fmt,pick,near,
   mi,up,sb,ssp,OP,FR,SQ,EQ,CALC,HALF,sq2,neg,IMPLIES,AND,PAREN,PI,OMEGA,V0,VI,VF,KE,KEI,KEF,DKE,
   legend,steps,checkline,finalAns,watch,calcTip,
