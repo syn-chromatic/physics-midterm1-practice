@@ -1,4 +1,4 @@
-/* Physics Midterm 1 Practice engine v1
+/* Midterm practice engine (the physics and maths pages share it)
    A page loads engine.css + engine.js, then calls HL.start({id, setName, lede, next, questions:[...]}).
    Helpers for writing questions are on window.HL. HL.selfTest() checks every question and variant. */
 (function(){
@@ -45,13 +45,15 @@ const finalAns=h=>`<div class="final"><span class="tk-label">Answer</span><div c
 const watch=h=>`<div class="watch"><b>Common mistake.</b> ${h}</div>`;
 const calcTip=(e,more)=>`<p class="tip"><b>Tip:</b> you can type <code>${e}</code> straight into the answer box. It works out the result for you.${more||""}</p>`;
 
-const RUNGS=[
+const DEFAULT_RUNGS=[
   ["Write down what you know","List the numbers from the question, with symbols and units"],
   ["Which idea to use","The physics in plain words, no formula yet"],
   ["The formula","The equation, with every symbol explained"],
   ["Plug in the numbers","The formula with your numbers already in it"],
   ["Full solution","Every step worked out, with a check"]
 ];
+let RUNGS=DEFAULT_RUNGS;
+const val2=(x,p,c)=>typeof x==="function"?x(p,c):x;
 
 /* ---------- number parsing ---------- */
 function plainCandidates(s){
@@ -215,15 +217,28 @@ function sheetHTML(){
   if(!items.length) return `<div class="sheet" id="sheet"><p class="small">Formulas appear here once you open hint 3 on a question, or solve it.</p></div>`;
   return `<div class="sheet" id="sheet">${items.map(e=>`<div class="sheet-item"><span class="label">${e.topic} · ${e.name}</span>${EQ(e.eq)}<p class="small">${e.note||""}</p></div>`).join("")}</div>`;
 }
+/* Light / dark switch. With no choice saved, the page follows the device setting. */
+const THEME_KEY="hl-theme";
+const isDark=()=>{const t=document.documentElement.getAttribute("data-theme");return t?t==="dark":!!(window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);};
+const SUN='<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>';
+const MOON='<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>';
+function themeBtnHTML(){const d=isDark();return `<button class="btn theme-btn" data-act="theme" aria-label="Switch to ${d?"light":"dark"} mode">${d?SUN:MOON}<span>${d?"Light mode":"Dark mode"}</span></button>`;}
 function headHTML(){
   return `<header class="top">
-    <p class="eyebrow">${CFG.eyebrow||`Physics exam practice${CFG.setName?` · ${CFG.setName}`:""} · ${QS.length} questions`}</p>
+    <div class="top-row"><p class="eyebrow">${CFG.eyebrow||`Physics exam practice${CFG.setName?` · ${CFG.setName}`:""} · ${QS.length} questions`}</p>${CFG.themeToggle?themeBtnHTML():""}</div>
     <h1>${CFG.title||"Physics Midterm 1 Practice"}${CFG.setName?` <span class="h1-set">${CFG.setName}</span>`:""}</h1>
   </header>`;
 }
+/* "New numbers" in the side panel: always asks first, and explains that it changes every question */
+const unfinished=()=>QS.some(q=>{const s=state.qs[q.id];if(allSolved(q))return false;return s.hints>0||Object.values(s.inputs||{}).some(v=>String(v).trim())||Object.values(s.gv||{}).some(v=>String(v).trim());});
+function newAllHTML(){
+  if(!state.allArm)return `<button class="btn btn-heat" data-act="newall" title="New numbers for all ${QS.length} ${CFG.noun||"questions"}">New numbers</button>`;
+  return `<div class="arm-row" role="alert"><span class="small">This gives all ${QS.length} ${CFG.noun||"questions"} new numbers.${unfinished()?" Answers and hints you haven't finished will be cleared.":""}</span><button class="btn btn-primary btn-heat" data-act="newall">Ok</button><button class="btn btn-ghost" data-act="newallno">Cancel</button></div>`;
+}
+function renewAll(){if(CFG.onRenewAll)CFG.onRenewAll(true);QS.forEach(renew);if(CFG.onRenewAll)CFG.onRenewAll(false);}
 function sideHTML(){
   return `<nav class="${CFG.sets?"setnav":"chips"}" aria-label="Questions">${navHTML()}</nav>
-    <div class="sheet-bar">${CFG.random?`<button class="btn" data-act="random">Random question</button>`:""}<button class="btn btn-ghost" data-act="sheet" aria-expanded="${state.sheetOpen}" aria-controls="sheet">${state.sheetOpen?"Hide":"Show"} my formula sheet<span class="count">${sheetEntries().length}</span></button></div>
+    <div class="sheet-bar">${CFG.random?`<button class="btn" data-act="random">Random question</button>`:""}${CFG.newAll?newAllHTML():""}<button class="btn btn-ghost" data-act="sheet" aria-expanded="${state.sheetOpen}" aria-controls="sheet">${state.sheetOpen?"Hide":"Show"} my formula sheet<span class="count">${sheetEntries().length}</span></button></div>
     ${state.sheetOpen?sheetHTML():""}
 `;
 }
@@ -247,7 +262,7 @@ function givenHTML(q,s,p){
   if(s.grevealed) foot=`<p class="gv-msg">That's the full list. Now try the question, or open hint 2.</p>`;
   else if(allOk) foot=`<p class="gv-msg">All correct! This list is your starting point. Try the question now, or open hint 2.</p>`;
   else foot=`<div class="btn-row"><button class="btn" data-act="gcheck">Check my list</button><button class="btn btn-ghost" data-act="greveal">Fill it in for me</button></div>`;
-  return `<p>Every physics problem starts the same way: list what you know. Each thing gets a <b>symbol</b>, a <b>value</b> and a <b>unit</b>. The numbers you need are now highlighted in the question. Type each one in the box next to its symbol. When you click a box, its number lights up in the question.</p>
+  return `<p>${CFG.givenIntro||"Every physics problem starts the same way: list what you know. Each thing gets a <b>symbol</b>, a <b>value</b> and a <b>unit</b>. The numbers you need are now highlighted in the question. Type each one in the box next to its symbol. When you click a box, its number lights up in the question."}</p>
     <div class="gv"><span class="label">Given</span>${rows}<span class="label">Find</span>${finds}</div>${foot}`;
 }
 function rungBody(q,s,p,c,i){
@@ -297,7 +312,7 @@ function solvedHTML(q,s,p,c){
     <p class="solved-h">Solved</p>
     <p>${line}${best}</p>
     <div class="takeaway"><span class="tk-label">What you used</span>${EQ(q.takeEq(p,c))}<p>${q.takeaway}</p></div>
-    <div class="hwlink"><span class="tk-label">On your homework</span><p>${q.link}</p></div>
+    <div class="hwlink"><span class="tk-label">${CFG.linkLabel||"On your homework"}</span><p>${val2(q.link,p,c)}</p></div>
     <div class="btn-row"><button class="btn" data-act="renew">New numbers</button><button class="btn btn-primary" data-act="next">${state.cur<QS.length-1?"Next question →":"See results →"}</button></div>
   </div>`;
 }
@@ -378,20 +393,20 @@ function setupViz(q){
 }
 function questionHTML(q){
   const s=state.qs[q.id],p=s.params,c=q.calc(p),gl=q.given(p);
-  const G=(k,txt)=>{const g=gl.find(x=>x.k===k);return `<mark class="g${s.hints>=1?" on":""}" data-g="${k}">${s.grevealed&&g?`<span class="g-sym">${g.sym} =</span> `:""}${txt}</mark>`;};
+  const G=(k,txt)=>{const g=gl.find(x=>x.k===k);return `<mark class="g${s.hints>=1?" on":""}" data-g="${k}">${s.grevealed&&g&&CFG.gsym!==false?`<span class="g-sym">${g.sym} =</span> `:""}${txt}</mark>`;};
   const T=(k,txt)=>`<button type="button" class="term${s.term===k?" is-on":""}" data-act="term" data-k="${k}" aria-expanded="${s.term===k}">${txt}</button>`;
   const def=s.term&&q.terms&&q.terms[s.term]?`<div class="termdef" role="note"><p><b>${q.terms[s.term][0]}.</b> ${q.terms[s.term][1]}</p><button class="btn btn-ghost" data-act="term" data-k="${s.term}">Close</button></div>`:"";
   const idx=QS.indexOf(q);
   return `<div style="display:flex;flex-direction:column;gap:22px">
     <article class="qcard" aria-labelledby="q-title">
       <div class="q-meta"><span class="tk-label" id="q-title">Question ${idx+1} of ${QS.length}</span><span class="tag">${q.topic}</span>${q.level?`<span class="tag tag-set">${q.level}</span>`:""}${CFG.sets&&q.set?`<span class="tag tag-set">${setLabel(q.set)}</span>`:""}<span class="small">${q.hw||""}</span></div>
-      <p class="qtext">${q.text(p,G,T)}</p>
+      <p class="qtext">${q.text(p,G,T)}</p>${q.after?q.after(p,c,allSolved(q)):""}
       ${sceneOf(q)?`<div class="scene" aria-hidden="true"><canvas id="scene-cv"></canvas></div>`:""}
       <p class="small" style="margin-top:-8px">Words with a dotted underline explain themselves when you click them.</p>
       ${def}
       <div class="answers">
         ${q.parts.map(pt=>partHTML(q,s,pt,p)).join("")}
-        ${allSolved(q)?"":`<p class="calc-note">You can type a number (like 13 or 0.31) or a whole calculation (like <code>4+1.5*6</code>, <code>sqrt(16)</code> or <code>2*pi</code>).</p>`}
+        ${allSolved(q)?"":`<p class="calc-note">${CFG.calcNote||"You can type a number (like 13 or 0.31) or a whole calculation (like <code>4+1.5*6</code>, <code>sqrt(16)</code> or <code>2*pi</code>)."}</p>`}
       </div>
       ${allSolved(q)?solvedHTML(q,s,p,c):""}
     </article>
@@ -437,18 +452,20 @@ const curQ=()=>QS[state.cur];
 function checkPart(q,partId){
   const s=state.qs[q.id],p=s.params,c=q.calc(p),part=q.parts.find(x=>x.id===partId);
   const raw=s.inputs[partId]||"",xs=candidates(raw),ans=part.ans(p,c);
+  const tol=part.tol!=null?part.tol:0.02,abs=part.abs||1e-9,F=part.fmt||fmt;
+  const ok=(x,y)=>Number.isFinite(x)&&Number.isFinite(y)&&Math.abs(x-y)<=Math.abs(y)*tol+abs;
   if(!xs.length){
     s.fb[partId]={kind:"info",msg:raw.trim()?"I can't read that. Type a number (like 13 or 0.31) or a calculation (like 4+1.5*6).":"Type your answer first."};
-  } else if(xs.some(x=>near(x,ans))){
+  } else if(xs.some(x=>ok(x,ans))){
     s.solved[partId]=true;
-    s.fb[partId]={kind:"ok",msg:`<b>Correct!</b> ${part.sym} = ${fmt(ans)} ${part.unit||""}`};
+    s.fb[partId]={kind:"ok",msg:`<b>Correct!</b> ${part.sym} = ${F(ans)} ${part.unit||""}`};
   } else {
     const traps=part.traps?part.traps(p,c):[];let msg=null;
-    for(const x of xs){const t=traps.find(tr=>near(x,tr[0]));if(t){msg=t[1];break;}}
+    for(const x of xs){const t=traps.find(tr=>ok(x,tr[0]));if(t){msg=t[1];break;}}
     const x=xs[0];
     if(msg) s.fb[partId]={kind:"bad",msg};
-    else if(near(-x,ans)) s.fb[partId]={kind:"bad",msg:`The size is right, but check the sign. This value should be ${ans<0?"negative":"positive"}.`};
-    else if(near(x,ans,0.06)) s.fb[partId]={kind:"close",msg:"Very close! Check your rounding. Keep at least 3 significant figures (for example 0.314, not 0.3)."};
+    else if(ok(-x,ans)) s.fb[partId]={kind:"bad",msg:`The size is right, but check the sign. This value should be ${ans<0?"negative":"positive"}.`};
+    else if(near(x,ans,0.06)) s.fb[partId]={kind:"close",msg:part.closeMsg||CFG.closeMsg||"Very close! Check your rounding. Keep at least 3 significant figures (for example 0.314, not 0.3)."};
     else{
       const nxt=s.hints<5?` If you're stuck, open hint ${s.hints+1} (${RUNGS[s.hints][0].toLowerCase()}).`:" Compare your steps with the full solution above.";
       s.fb[partId]={kind:"bad",msg:`Not quite. Check your calculation.${nxt}`};
@@ -474,7 +491,12 @@ function renew(q){
 function onClick(e){
   const b=e.target.closest("[data-act]");if(!b)return;
   const act=b.dataset.act,q=curQ(),s=q?state.qs[q.id]:null;
+  if(state.allArm&&act!=="newall"&&act!=="newallno")state.allArm=false;
   switch(act){
+    case "newall":if(!state.allArm){state.allArm=true;render();break;}
+      state.allArm=false;renewAll();if(state.cur>=QS.length)state.cur=0;render();scrollToEl($("#main"),"start");break;
+    case "newallno":state.allArm=false;render();break;
+    case "theme":{const next=isDark()?"light":"dark";document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem(THEME_KEY,next);}catch(e){}render();break;}
     case "go":state.cur=+b.dataset.i;render();scrollToEl($("#main"),"start");break;
     case "next":state.cur=Math.min(QS.length,state.cur+1);render();scrollToEl($("#main"),"start");break;
     case "prev":state.cur=Math.max(0,state.cur-1);render();scrollToEl($("#main"),"start");break;
@@ -492,7 +514,7 @@ function onClick(e){
     case "greveal":s.grevealed=true;render();break;
     case "check":checkPart(q,b.dataset.part);break;
     case "renew":renew(q);render();scrollToEl($("#main"),"start");break;
-    case "renewall":QS.forEach(renew);state.cur=0;render();scrollToEl($("#main"),"start");break;
+    case "renewall":state.allArm=false;renewAll();state.cur=0;render();scrollToEl($("#main"),"start");break;
   }
 }
 function onInput(e){
@@ -528,7 +550,7 @@ function selfTest(){
       try{
         const c=q.calc(p),gl=q.given(p),keys=new Set(gl.map(g=>g.k));
         const txt=q.text(p,(k,t)=>{if(!keys.has(k))out.push(`${q.id}: text marks "${k}" but given() has no such key`);return t;},(k,t)=>{if(!q.terms||!q.terms[k])out.push(`${q.id}: text uses term "${k}" that is missing from terms`);return t;});
-        const html=[txt,q.idea(p,c),q.formula(p,c),q.plug(p,c),q.solution(p,c),q.takeEq(p,c),q.takeaway,q.link,q.viz?q.viz.html(p,c):""]
+        const html=[txt,q.after?q.after(p,c,false):"",q.idea(p,c),q.formula(p,c),q.plug(p,c),q.solution(p,c),q.takeEq(p,c),q.takeaway,val2(q.link,p,c),q.viz?q.viz.html(p,c):""]
           .concat(q.sheet.map(e=>e.eq+" "+(e.note||""))).concat(val(q.find,p).map(f=>f.sym+" "+f.why)).concat(q.parts.map(pt=>val(pt.label,p))).join(" ");
         const m=html.match(BAD);if(m)out.push(`${q.id} ${key}: generated text contains "${m[0]}"`);
         gl.forEach(g=>{if(!Number.isFinite(g.val))out.push(`${q.id} ${key}: given "${g.k}" is not a number`);
@@ -537,7 +559,7 @@ function selfTest(){
           if(!Number.isFinite(a)){out.push(`${q.id} ${key}: part "${pt.id}" answer is not a number`);return;}
           (pt.traps?pt.traps(p,c):[]).forEach(([v,msg],i)=>{
             if(!Number.isFinite(v))out.push(`${q.id} ${key}: part "${pt.id}" trap ${i+1} is not a number`);
-            else if(near(v,a,0.025))out.push(`${q.id} ${key}: part "${pt.id}" trap ${i+1} (${fmt(v)}) is within 2.5% of the answer (${fmt(a)}), so it can never fire`);
+            else if(Math.abs(v-a)<=Math.abs(a)*(pt.tol!=null?pt.tol:0.025)+(pt.abs||1e-9))out.push(`${q.id} ${key}: part "${pt.id}" trap ${i+1} (${fmt(v)}) is too close to the answer (${fmt(a)}), so it can never fire`);
             const mm=String(msg).match(BAD);if(mm)out.push(`${q.id}: part "${pt.id}" trap ${i+1} message contains "${mm[0]}"`);});
         });
       }catch(e){out.push(`${q.id} ${key}: threw ${e&&e.message||e}`);}
@@ -552,7 +574,7 @@ const debug={
 
 /* ---------- start ---------- */
 function start(cfg){
-  CFG=cfg||{};SLOTS=CFG.questions||[];STORE="physics-hint-ladder-"+(CFG.id||"set");
+  CFG=cfg||{};SLOTS=CFG.questions||[];RUNGS=CFG.rungs||DEFAULT_RUNGS;STORE="physics-hint-ladder-"+(CFG.id||"set");
   if(!$("#top")){const w=document.createElement("div");w.className="wrap";w.innerHTML='<div id="top"></div><aside id="side" aria-label="Question list"></aside><main id="main"></main>';document.body.appendChild(w);}
   if(!$("#side")){const a=document.createElement("aside");a.id="side";a.setAttribute("aria-label","Question list");$("#top").after(a);}
   try{const raw=localStorage.getItem(STORE);if(raw){const s=JSON.parse(raw);if(s&&s.qs)state=s;}}catch(e){}
@@ -563,11 +585,13 @@ function start(cfg){
     else state.qs[sl.id]=freshQ(sl);});
   resolve();
   if(!(state.cur>=0&&state.cur<=QS.length))state.cur=0;
+  if(CFG.themeToggle){try{const t=localStorage.getItem(THEME_KEY);if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}
+    if(window.matchMedia){const mq=window.matchMedia("(prefers-color-scheme: dark)"),f=()=>{if(!document.documentElement.getAttribute("data-theme"))render();};if(mq.addEventListener)mq.addEventListener("change",f);}}
   bind();render();
 }
 
 window.HL={
-  version:7,start,selfTest,debug,
+  version:8,start,selfTest,debug,
   fmt,pick,near,
   mi,up,sb,ssp,OP,FR,SQ,EQ,CALC,HALF,sq2,neg,IMPLIES,AND,PAREN,PI,OMEGA,V0,VI,VF,KE,KEI,KEF,DKE,
   legend,steps,checkline,finalAns,watch,calcTip,

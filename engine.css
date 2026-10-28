@@ -351,3 +351,79 @@ input,button,select,textarea{box-sizing:border-box}
 /* Question scene: an animation of the situation, shown above the answers */
 .scene{border:1px solid var(--rule);border-radius:6px;background:var(--card-2);overflow:hidden;max-width:640px;width:100%}
 .scene canvas{display:block;width:100%;height:auto;aspect-ratio:600/220}
+
+/* Maths: matrices, systems of equations, the exam's answer table, step-through visuals */
+:root{--heat-soft:rgba(212,96,42,.16)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--heat-soft:rgba(255,155,98,.2)}}
+:root[data-theme="dark"]{--heat-soft:rgba(255,155,98,.2)}
+.dmath{display:block;margin:.5em 0 .35em;overflow-x:auto;max-width:100%;font-family:var(--font-math);font-size:1.1em;line-height:1.25;padding:.2em 0}
+.mx{position:relative;display:inline-block;vertical-align:middle;padding:0 .62em;margin:0 .08em;line-height:1.3;font-family:var(--font-math);font-style:normal;white-space:nowrap}
+.mx-g{display:grid;gap:.06em .8em;justify-items:end;align-items:baseline;padding:.12em 0}
+.mx-s{font-size:.84em}
+.br{position:absolute;top:0;height:100%;width:.42em;overflow:visible;fill:none;stroke:currentColor;stroke-width:1.5}
+.br path{vector-effect:non-scaling-stroke}
+.br-l{left:.04em}
+.br-r{right:.04em}
+.mx-d{padding:0 .48em}
+.mx-b{padding:0 0 0 .8em}
+.sys{column-gap:.3em}
+.sys .op-c{justify-self:center}
+.mc{font-variant-numeric:tabular-nums;white-space:nowrap;border-radius:3px;padding:0 .14em;transition:background .25s,opacity .25s,color .25s}
+.mc.x{opacity:.22}
+.mc.hl{background:var(--marker);color:var(--marker-ink)}
+.mc.hb{background:var(--blue-soft)}
+.mc.hh{background:var(--heat-soft)}
+.mc.d1{color:var(--blue);font-weight:700}
+.mc.d2{color:var(--heat);font-weight:700}
+.mc.d3{color:var(--ok);font-weight:700}
+.mc.rep{opacity:.6}
+.mc.pend{color:var(--ink-2);opacity:.6}
+.tA{color:var(--blue);font-weight:700}
+.tB{color:var(--heat);font-weight:700}
+.tC{color:var(--ok);font-weight:700}
+.opts-wrap{overflow-x:auto;max-width:100%}
+.opts{border-collapse:collapse;font-variant-numeric:tabular-nums;font-family:var(--font-math);font-size:1.05rem}
+.opts th{font-family:var(--font-label);font-size:.74rem;font-weight:600;color:var(--ink-2);padding:3px 12px;border:1px solid var(--rule);background:var(--card-2)}
+.opts td{padding:6px 12px;text-align:center;border:1px solid var(--rule);white-space:nowrap;min-width:3.2em}
+.opts .is-right{background:var(--ok-bg);color:var(--ok);font-weight:700}
+.wk{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-family:var(--font-math);font-size:1.15rem;overflow-x:auto;max-width:100%}
+.wk > .calc{flex:1 1 14em;min-width:0}
+.lines{display:flex;flex-direction:column;gap:2px}
+.calc.sm{font-size:1rem;line-height:1.5}
+.cofs{display:grid;grid-template-columns:repeat(auto-fill,minmax(16em,1fr));gap:2px 18px}
+.stp-stage{min-height:7.5em;display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;font-family:var(--font-math);font-size:1.25rem;overflow-x:auto;max-width:100%}
+.stp-note{max-width:66ch;min-height:3em}
+.stp .btn[disabled]{opacity:.45;cursor:default;border-color:var(--rule);background:var(--card);color:var(--ink-2)}
+.plane-cv{display:block;width:100%;height:auto;aspect-ratio:600/330;max-width:100%;touch-action:none;cursor:grab;border-radius:4px;background:var(--card-2)}
+.key{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:.9rem;color:var(--ink-2)}
+.key i{display:inline-block;width:12px;height:12px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.ok-t{color:var(--ok);font-weight:700}
+.alg{display:flex;flex-direction:column;gap:6px;font-family:var(--font-math);font-size:1.2rem}
+.wk-i{white-space:normal}
+@media (max-width:520px){.wk,.stp-stage{font-size:1.05rem}.dmath{font-size:1em;line-height:1.5}.opts{width:100%;font-size:.92rem}.opts td,.opts th{padding:5px 3px;min-width:0}}
+
+/* "New numbers for all" confirm row in the side panel */
+.arm-row{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;background:var(--warn-bg);border-radius:6px;padding:10px 12px;width:100%}
+.arm-row .small{flex:1 1 100%;color:var(--ink)}
+
+/* Orange accents: the "New numbers for all" button, and the number of the hint you can open next (it breathes in orange) */
+:root{--heat-ui:#b24d1a;--heat-ui-ink:#ffffff;--heat-glow:rgba(212,96,42,.4)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--heat-ui:#ff9b62;--heat-ui-ink:#1a0f08;--heat-glow:rgba(255,155,98,.38)}}
+:root[data-theme="dark"]{--heat-ui:#ff9b62;--heat-ui-ink:#1a0f08;--heat-glow:rgba(255,155,98,.38)}
+.btn-heat{border-color:var(--heat-ui);color:var(--heat-ui)}
+.btn-heat:hover{background:var(--heat-soft)}
+.btn-heat.btn-primary{background:var(--heat-ui);color:var(--heat-ui-ink)}
+.btn-heat.btn-primary:hover{background:var(--heat-ui);filter:brightness(1.08)}
+.btn-heat:focus-visible{outline-color:var(--heat-ui)}
+.rung-btn .rung-n{border-color:var(--heat-ui);color:var(--heat-ui)}
+@media (prefers-reduced-motion:no-preference){
+  .rung-btn .rung-n{animation:nudge-heat 2.2s ease-in-out infinite}
+  @keyframes nudge-heat{0%,65%,100%{box-shadow:0 0 0 0 var(--heat-glow)}30%{box-shadow:0 0 0 8px var(--heat-glow)}}
+}
+
+/* Light / dark switch, top right of the header */
+.top-row{display:flex;justify-content:space-between;align-items:center;gap:10px 16px}
+.top-row .eyebrow{flex:1 1 auto;min-width:0}
+.theme-btn{flex:none;display:inline-flex;align-items:center;gap:7px;font-size:.86rem;padding:.42em .85em;border-radius:999px;border-color:var(--rule);color:var(--ink);background:var(--card)}
+.theme-btn:hover{border-color:var(--blue);background:var(--card)}
+.theme-btn svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
