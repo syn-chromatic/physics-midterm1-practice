@@ -460,3 +460,34 @@ input,button,select,textarea{box-sizing:border-box}
 
 /* The formula sheet's note on how formulas get added: always first */
 .sheet-note{font-size:.9rem;color:var(--ink);background:var(--blue-soft);border-radius:4px;padding:8px 12px}
+
+/* Difficulty switch: three stops with a sliding thumb (green, blue, orange) */
+/* Difficulty filter: funnel, then a segmented switch whose sliding thumb takes the level's colour */
+.lvc-0{--lvc:var(--ok)}.lvc-1{--lvc:var(--blue)}.lvc-2{--lvc:var(--heat-ui)}
+.lvl{--ic:34px;position:relative;display:grid;grid-template-columns:var(--ic) repeat(var(--n),1fr);align-items:center;width:100%;max-width:520px;padding:4px;background:var(--card);border:1.5px solid var(--rule);border-radius:999px;margin-top:4px}
+.lvl-ic{display:grid;place-items:center;height:100%;color:var(--ink-2);border-right:1.5px solid var(--rule);margin-right:4px}
+.lvl-ic svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round}
+.lvl-thumb{position:absolute;top:4px;bottom:4px;left:calc(4px + var(--ic) + 4px);width:calc((100% - 12px - var(--ic)) / var(--n));border-radius:999px;background:var(--lvl-c,var(--blue));transform:translateX(calc(100% * var(--i)));transition:transform .26s cubic-bezier(.3,.7,.3,1),background-color .26s;box-shadow:0 1px 3px rgba(8,16,40,.25)}
+.lvl[data-c="all"]{--lvl-c:var(--ink)}
+.lvl[data-c="0"]{--lvl-c:var(--ok)}
+.lvl[data-c="1"]{--lvl-c:var(--blue)}
+.lvl[data-c="2"]{--lvl-c:var(--heat-ui)}
+.lvl-btn{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;background:none;border:0;border-radius:999px;padding:.6em .3em;font:700 .98rem/1.1 var(--font-body);color:var(--ink-2);cursor:pointer;transition:color .2s;white-space:nowrap}
+.lvl-btn:hover{color:var(--ink)}
+.lvl-btn.is-on{color:var(--card)}
+.lvl-dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--lvc);transition:background-color .2s}
+.lvl-btn.is-on .lvl-dot{background:currentColor;opacity:.75}
+@media (max-width:420px){.lvl{--ic:30px}.lvl-btn{font-size:.9rem;gap:5px;padding:.62em .15em}.lvl-dot{width:7px;height:7px}}
+@media (max-width:350px){.lvl{--ic:26px}.lvl-btn{font-size:.84rem;gap:4px;padding:.66em .1em}.lvl-dot{width:6px;height:6px}}
+/* the same colour marks each question's level in the list, the dropdown and the question header */
+.chip[class*="lvc-"],.qpick-btn[class*="lvc-"]{position:relative}
+.chip[class*="lvc-"]::before,.qpick-btn[class*="lvc-"]::before{content:"";position:absolute;left:2px;top:7px;bottom:7px;width:3px;border-radius:3px;background:var(--lvc)}
+.tag-lv{color:var(--lvc,var(--ink-2));border-color:var(--lvc,var(--rule))}
+@media (prefers-reduced-motion:no-preference){
+  #side.is-filtering .chip,#side.is-filtering .qgroup,#side.is-filtering .qpick-btn{animation:lvIn .34s cubic-bezier(.3,.7,.3,1) both;animation-delay:calc(min(var(--k,0),16) * 18ms)}
+  @keyframes lvIn{from{opacity:0;transform:translateY(8px)}}
+}
+@media (prefers-reduced-motion:reduce){.lvl-thumb{transition:none}}
+/* Topic headings inside the question list */
+.qgroup{font-family:var(--font-label);font-size:.68rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);font-weight:600;padding:8px 2px 0;width:100%}
+.qgroup:first-child{padding-top:0}

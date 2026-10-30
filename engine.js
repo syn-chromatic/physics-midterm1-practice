@@ -184,7 +184,14 @@ let CFG={},QS=[],SLOTS=[],VIEW={},state=null,STORE="physics-hint-ladder";
 /* A slot with a pool shows one of several versions (e.g. easier/harder); state.qs[id].which says which. */
 function viewOf(sl){const s=state.qs[sl.id],w=(s&&s.which)||0,key=sl.id+"#"+w;
   if(!VIEW[key])VIEW[key]=Object.assign({},sl.pool[w],{id:sl.id,set:sl.set!=null?sl.set:sl.pool[w].set});return VIEW[key];}
-function resolve(){QS=SLOTS.map(sl=>sl.pool?viewOf(sl):sl);}
+const allQ=()=>SLOTS.map(sl=>sl.pool?viewOf(sl):sl);
+/* With CFG.levels (e.g. ["Easy","Medium","Hard"]) the switch at the top filters the questions to one level.
+   CFG.levelAll adds an "All" option first, which shows every question. */
+const ALL="All";
+const lvOpts=()=>CFG.levels?(CFG.levelAll?[ALL].concat(CFG.levels):CFG.levels):[];
+const lvKey=l=>{const k=CFG.levels?CFG.levels.indexOf(l):-1;return k>=0?String(k):"all";};
+const lvc=l=>{const k=CFG.levels&&l?CFG.levels.indexOf(l):-1;return k>=0?` lvc-${k}`:"";};   /* level colour class */
+function resolve(){QS=allQ();if(CFG.levels&&state.level!==ALL)QS=QS.filter(q=>q.level===state.level);}
 const setLabel=n=>((CFG.sets||[]).find(x=>x.n===n)||{}).label||`Set ${n}`;
 const allDefs=()=>SLOTS.flatMap(sl=>sl.pool?sl.pool.map(d=>Object.assign({},d,{id:sl.id+"/"+(d.level||"v")})):[sl]);
 const val=(x,p)=>typeof x==="function"?x(p):x;
@@ -195,17 +202,18 @@ const allSolved=q=>q.parts.every(pt=>state.qs[q.id].solved[pt.id]);
 /* ---------- rendering ---------- */
 function sheetEntries(){
   const out=[];
-  QS.forEach(q=>{const s=state.qs[q.id];if(s.hints>=3||allSolved(q)||s.wins>0)q.sheet.forEach(e=>out.push(Object.assign({topic:q.topic},e)));});
+  allQ().forEach(q=>{const s=state.qs[q.id];if(s&&(s.hints>=3||allSolved(q)||s.wins>0))q.sheet.forEach(e=>out.push(Object.assign({topic:q.title||q.topic},e)));});
   return out;
 }
 const statusOf=q=>{const s=state.qs[q.id];return allSolved(q)?"Solved":s.hints?`${s.hints} hint${s.hints>1?"s":""} open`:"Not started";};
 function navHTML(){
   const chips=QS.map((q,i)=>{
-    const done=allSolved(q),status=statusOf(q);
-    return `<button class="chip${i===state.cur?" is-cur":""}${done?" is-done":""}" data-act="go" data-i="${i}"${i===state.cur?' aria-current="step"':""}><span class="chip-n">${done?"✓":i+1}</span><span class="chip-t"><span class="chip-topic">${q.topic}</span><span class="chip-s">${status}</span></span></button>`;
+    const done=allSolved(q),status=statusOf(q),head=CFG.groupByTopic&&(i===0||QS[i-1].topic!==q.topic)?`<span class="qgroup">${q.topic}</span>`:"";
+    const k=`style="--k:${i}"`;
+    return `${head?head.replace('<span class="qgroup">',`<span class="qgroup" ${k}>`):""}<button class="chip${i===state.cur?" is-cur":""}${done?" is-done":""}${lvc(q.level)}" ${k} data-act="go" data-i="${i}"${i===state.cur?' aria-current="step"':""}><span class="chip-n">${done?"✓":i+1}</span><span class="chip-t"><span class="chip-topic">${q.title||q.topic}</span><span class="chip-s">${status}</span></span></button>`;
   }).join("");
   const n=QS.filter(allSolved).length;
-  const results=`<button class="chip${state.cur===QS.length?" is-cur":""}" data-act="go" data-i="${QS.length}"><span class="chip-n">Σ</span><span class="chip-t"><span class="chip-topic">Results</span><span class="chip-s">${n} of ${QS.length} solved</span></span></button>`;
+  const results=`<button class="chip${state.cur===QS.length?" is-cur":""}" style="--k:${QS.length}" data-act="go" data-i="${QS.length}"><span class="chip-n">Σ</span><span class="chip-t"><span class="chip-topic">Results</span><span class="chip-s">${n} of ${QS.length} solved</span></span></button>`;
   if(CFG.sets){
     const one=(q,i)=>chips.split("</button>")[i]+"</button>";
     return CFG.sets.map(st=>`<div class="set-row"><span class="label">${st.label||`Set ${st.n}`}</span><div class="chips">${QS.map((q,i)=>q.set===st.n?one(q,i):"").join("")}</div></div>`).join("")+`<div class="set-row"><span class="label">Overall</span><div class="chips">${results}</div></div>`;
@@ -227,7 +235,21 @@ function headHTML(){
   return `<header class="top">
     <div class="top-row"><p class="eyebrow">${CFG.eyebrow||`Physics exam practice${CFG.setName?` · ${CFG.setName}`:""} · ${QS.length} questions`}</p>${CFG.themeToggle?themeBtnHTML():""}</div>
     <h1>${CFG.title||"Physics Midterm 1 Practice"}${CFG.setName?` <span class="h1-set">${CFG.setName}</span>`:""}</h1>
+    ${CFG.levels?levelHTML():""}
   </header>`;
+}
+/* the filter switch: a funnel, then one segment per option; each level has its own colour, which the question list repeats */
+const FUNNEL='<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M3.5 4.5h17l-6.6 8.1v6.1l-3.8 2v-8.1z"/></svg>';
+function levelHTML(){const L=lvOpts(),i=Math.max(0,L.indexOf(state.level));
+  return `<div class="lvl" role="radiogroup" aria-label="Filter questions by difficulty" style="--n:${L.length};--i:${i}" data-c="${lvKey(L[i])}"><span class="lvl-ic" title="Filter by difficulty">${FUNNEL}</span><span class="lvl-thumb" aria-hidden="true"></span>${L.map((l,k)=>`<button class="lvl-btn${k===i?" is-on":""}${lvc(l)}" role="radio" aria-checked="${k===i}" tabindex="${k===i?0:-1}" data-act="level" data-lv="${l}">${lvc(l)?'<span class="lvl-dot" aria-hidden="true"></span>':""}${l}</button>`).join("")}</div>`;}
+function setLevel(lv,focus){
+  if(!lvOpts().includes(lv)||lv===state.level)return;
+  state.curBy=state.curBy||{};state.curBy[state.level]=state.cur;state.level=lv;state.cur=state.curBy[lv]||0;state.allArm=false;
+  const el=$(".lvl"),i=lvOpts().indexOf(lv);   /* slide the thumb on the switch that's already on screen, then redraw the rest */
+  if(el){el.style.setProperty("--i",i);el.dataset.c=lvKey(lv);$$(".lvl-btn",el).forEach(b=>{const on=b.dataset.lv===lv;b.classList.toggle("is-on",on);b.setAttribute("aria-checked",on);b.tabIndex=on?0:-1;if(on&&focus)b.focus();});}
+  render(true);
+  const sd=$("#side");if(sd){sd.classList.remove("is-filtering");void sd.offsetWidth;sd.classList.add("is-filtering");clearTimeout(setLevel.f);setLevel.f=setTimeout(()=>sd.classList.remove("is-filtering"),900);}   /* the list re-deals itself */
+  clearTimeout(setLevel.t);setLevel.t=setTimeout(()=>{const f=document.activeElement&&document.activeElement.classList.contains("lvl-btn");$("#top").innerHTML=headHTML();if(f){const b=$(".lvl-btn.is-on");if(b)b.focus();}},280);
 }
 /* "New numbers" in the side panel: always asks first, and explains that it changes every question */
 const unfinished=()=>QS.some(q=>{const s=state.qs[q.id];if(allSolved(q))return false;return s.hints>0||Object.values(s.inputs||{}).some(v=>String(v).trim())||Object.values(s.gv||{}).some(v=>String(v).trim());});
@@ -242,8 +264,8 @@ let pickOpen=false;
 const CHEV='<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 9.5l6 6 6-6"/></svg>';
 function pickBtnHTML(){
   const i=state.cur,res=i>=QS.length,q=res?null:QS[i],done=!!q&&allSolved(q);
-  const n=res?"Σ":done?"✓":i+1,t=res?"Results":q.topic,st=res?`${QS.filter(allSolved).length} of ${QS.length} solved`:statusOf(q);
-  return `<button class="qpick-btn${done?" is-done":""}" data-act="pick" aria-expanded="${pickOpen}" aria-controls="qlist" aria-label="Choose a question: ${res?"Results":`question ${i+1}, ${t}`}"><span class="chip-n">${n}</span><span class="chip-t"><span class="chip-topic">${t}</span><span class="chip-s">${st}</span></span><span class="qpick-chev">${CHEV}</span></button>`;
+  const n=res?"Σ":done?"✓":i+1,t=res?"Results":(q.title||q.topic),st=res?`${QS.filter(allSolved).length} of ${QS.length} solved`:statusOf(q);
+  return `<button class="qpick-btn${done?" is-done":""}${q?lvc(q.level):""}" data-act="pick" aria-expanded="${pickOpen}" aria-controls="qlist" aria-label="Choose a question: ${res?"Results":`question ${i+1}, ${t}`}"><span class="chip-n">${n}</span><span class="chip-t"><span class="chip-topic">${t}</span><span class="chip-s">${st}</span></span><span class="qpick-chev">${CHEV}</span></button>`;
 }
 function setPick(open){pickOpen=open;const el=$(".qpick");if(!el)return;el.classList.toggle("open",open);const bt=$(".qpick-btn",el);if(bt)bt.setAttribute("aria-expanded",String(open));
   if(open){const list=$("#qlist"),cur=$("#qlist .is-cur");if(list&&cur)list.scrollTop=Math.max(0,cur.offsetTop-list.clientHeight/2+cur.offsetHeight/2);}}
@@ -411,7 +433,7 @@ function questionHTML(q){
   const idx=QS.indexOf(q);
   return `<div style="display:flex;flex-direction:column;gap:22px">
     <article class="qcard" aria-labelledby="q-title">
-      <div class="q-meta"><span class="tk-label" id="q-title">Question ${idx+1} of ${QS.length}</span><span class="tag">${q.topic}</span>${q.level?`<span class="tag tag-set">${q.level}</span>`:""}${CFG.sets&&q.set?`<span class="tag tag-set">${setLabel(q.set)}</span>`:""}<span class="small">${q.hw||""}</span></div>
+      <div class="q-meta"><span class="tk-label" id="q-title">Question ${idx+1} of ${QS.length}</span><span class="tag">${q.topic}</span>${q.level?`<span class="tag tag-lv${lvc(q.level)}">${q.level}</span>`:""}${CFG.sets&&q.set?`<span class="tag tag-set">${setLabel(q.set)}</span>`:""}<span class="small">${q.hw||""}</span></div>
       <p class="qtext">${q.text(p,G,T)}</p>${q.after?q.after(p,c,allSolved(q)):""}
       ${sceneOf(q)?`<div class="scene" aria-hidden="true"><canvas id="scene-cv"></canvas></div>`:""}
       <p class="small" style="margin-top:-8px">Words with a dotted underline explain themselves when you click them.</p>
@@ -439,7 +461,7 @@ function questionHTML(q){
 function summaryHTML(){
   const n=QS.filter(allSolved).length;
   const rows=QS.map((q,i)=>{const s=state.qs[q.id],done=allSolved(q);
-    return `<tr><td>${i+1}. ${q.topic}${CFG.sets&&q.set?` <span class="small">· ${setLabel(q.set)}</span>`:""}</td><td class="${done?"st-ok":"st-open"}">${done?"Solved":"Not yet"}</td><td>${done?(s.usedSolution?"Full solution":`${s.solvedWith} hint${s.solvedWith===1?"":"s"}`):(s.hints?`${s.hints} open`:"—")}</td><td>${s.best!=null?`${s.best} hint${s.best===1?"":"s"}`:"—"}</td></tr>`;}).join("");
+    return `<tr><td>${i+1}. ${q.title||q.topic}${CFG.sets&&q.set?` <span class="small">· ${setLabel(q.set)}</span>`:""}</td><td class="${done?"st-ok":"st-open"}">${done?"Solved":"Not yet"}</td><td>${done?(s.usedSolution?"Full solution":`${s.solvedWith} hint${s.solvedWith===1?"":"s"}`):(s.hints?`${s.hints} open`:"—")}</td><td>${s.best!=null?`${s.best} hint${s.best===1?"":"s"}`:"—"}</td></tr>`;}).join("");
   return `<div style="display:flex;flex-direction:column;gap:22px">
     <article class="qcard" aria-labelledby="sum-h">
       <h2 id="sum-h">${n===QS.length?`All ${QS.length} solved`:`${n} of ${QS.length} solved`}</h2>
@@ -448,10 +470,10 @@ function summaryHTML(){
     </article>
   </div>`;
 }
-function render(){
+function render(keepTop){
   resolve();
   stopLoops();
-  $("#top").innerHTML=headHTML();$("#side").innerHTML=sideHTML();
+  if(!keepTop)$("#top").innerHTML=headHTML();$("#side").innerHTML=sideHTML();
   const main=$("#main");
   if(state.cur>=QS.length) main.innerHTML=summaryHTML();
   else{main.innerHTML=questionHTML(QS[state.cur]);setupViz(QS[state.cur]);setupScene(QS[state.cur]);}
@@ -511,6 +533,7 @@ function onClick(e){
     case "newall":if(!state.allArm){state.allArm=true;render();break;}
       state.allArm=false;renewAll();if(state.cur>=QS.length)state.cur=0;render();scrollToEl($("#main"),"start");break;
     case "newallno":state.allArm=false;render();break;
+    case "level":setLevel(b.dataset.lv);break;
     case "theme":{const next=isDark()?"light":"dark";document.documentElement.setAttribute("data-theme",next);try{localStorage.setItem(THEME_KEY,next);}catch(e){}render();break;}
     case "go":state.cur=+b.dataset.i;render();scrollToEl($("#main"),"start");break;
     case "next":state.cur=Math.min(QS.length,state.cur+1);render();scrollToEl($("#main"),"start");break;
@@ -539,6 +562,8 @@ function onInput(e){
   else if(t.classList.contains("gv-in")){s.gv[t.dataset.g]=t.value;if(s.gcheck[t.dataset.g]!==undefined){delete s.gcheck[t.dataset.g];const row=t.closest(".gv-row");if(row){row.classList.remove("ok","bad");const m=$(".gv-mark",row);if(m)m.textContent="";const h=$(".gv-hint",row);if(h)h.remove();}}save();}
 }
 function onKey(e){
+  if(e.target.classList&&e.target.classList.contains("lvl-btn")&&CFG.levels&&/^Arrow(Left|Right|Up|Down)$/.test(e.key)){e.preventDefault();
+    const L=lvOpts(),i=L.indexOf(state.level),d=/Right|Down/.test(e.key)?1:-1;setLevel(L[(i+d+L.length)%L.length],true);return;}
   if(e.key==="Escape"&&pickOpen){setPick(false);const bt=$(".qpick-btn");if(bt)bt.focus();return;}
   if(e.key!=="Enter")return;const t=e.target,q=curQ();if(!q||!t.classList)return;
   if(t.classList.contains("ans")&&!t.readOnly){e.preventDefault();checkPart(q,t.dataset.part);}
@@ -600,6 +625,7 @@ function start(cfg){
     if(s&&s.params&&(!sl.pool||((s.which||0)<sl.pool.length)))return;
     if(sl.pool){const w=Math.floor(Math.random()*sl.pool.length),f=freshQ(sl.pool[w]);f.which=w;state.qs[sl.id]=f;}
     else state.qs[sl.id]=freshQ(sl);});
+  if(CFG.levels&&!lvOpts().includes(state.level))state.level=CFG.defaultLevel||lvOpts()[0];
   resolve();
   if(!(state.cur>=0&&state.cur<=QS.length))state.cur=0;
   if(CFG.themeToggle){try{const t=localStorage.getItem(THEME_KEY);if(t==="light"||t==="dark")document.documentElement.setAttribute("data-theme",t);}catch(e){}
@@ -608,7 +634,7 @@ function start(cfg){
 }
 
 window.HL={
-  version:8,start,selfTest,debug,
+  version:10,start,selfTest,debug,
   fmt,pick,near,
   mi,up,sb,ssp,OP,FR,SQ,EQ,CALC,HALF,sq2,neg,IMPLIES,AND,PAREN,PI,OMEGA,V0,VI,VF,KE,KEI,KEF,DKE,
   legend,steps,checkline,finalAns,watch,calcTip,
