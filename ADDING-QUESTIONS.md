@@ -72,7 +72,7 @@ Rules that keep things working:
    PHYS.add("Your topic",[ { …question… }, { …question… } ]);
    })();
    ```
-2. In `index.html`, add `<script src="physics/topics/9-your-topic.js?v=10"></script>` before `physics/start.js`.
+2. In `index.html`, add `<script src="physics/topics/9-your-topic.js?v=11"></script>` before `physics/start.js`.
 3. In `physics/start.js`, add `"Your topic"` to `TOPICS` where it should appear in the list.
 
 ## Check your work
@@ -85,4 +85,4 @@ HL.selfTest()
 
 It tries every question with its first numbers and 60 random sets, and lists anything wrong: a missing field, a number that isn't a number, a trap equal to the right answer, a marked number with no matching `given` entry. An empty list `[]` means all good.
 
-When you change a file, raise the `?v=10` in `index.html` (for example to `?v=11`) so browsers load the new version.
+When you change a file, raise the `?v=11` in `index.html` (for example to `?v=12`) so browsers load the new version.

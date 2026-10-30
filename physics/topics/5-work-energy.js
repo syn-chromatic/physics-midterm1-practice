@@ -85,6 +85,7 @@ PHYS.add("Work & energy",[
   K.tag(`${p.vf} m/s`,540,y-70,{size:11});K.line(540,y-62,540,y+2,{c:"ink2",w:1.2,dash:[4,4]});
   speedLines(K,x-40,y-20,3,10+u*7,0.5);
   K.car(x,y,{ang:x/9});K.tag(`${F(p.m)} kg`,x,y-58,{size:11});
+  draw.loopFade(K,t,5.4);
 }}
 },
 
@@ -279,6 +280,7 @@ PHYS.add("Work & energy",[
   K.arrow(xb+26,y+9,xb-14,y+9,{c:"heat",w:2.2});
   for(let i=0;i<3;i++){const hx=xb-20+i*18,ph=mod(t*1.6+i*0.33,1);K.poly([0,1,2,3,4,5].map(k=>[hx+3*Math.sin(k*1.4+t*6),y-4-ph*26-k*3]),{c:"heat",w:1.3,alpha:0.7*(1-ph)});}
   K.tag(`${p.vi} → ${p.vf} m/s`,520,40,{size:11});
+  draw.loopFade(K,t,6);
 }}
 },
 
@@ -369,6 +371,7 @@ PHYS.add("Work & energy",[
     K.arrow(x+64,y-26,x+38,y-26,{c:"heat",w:2.4});K.tag(`${p.Fd} N`,x+70,y-26,{align:"left",size:11,c:"heat"});K.tag(`steady ${p.vc} m/s`,x,y-64,{size:11});}
   else{speedLines(K,x-40,y-20,3,8+u*9,0.5);K.tag(`0 → ${p.v} m/s`,x,y-64,{size:11});}
   K.car(x,y,{ang:cruise?u*12:x/9});K.tag(`${F(p.m)} kg`,60,30,{align:"left",size:11});
+  draw.loopFade(K,t,7.2);
 }}
 },
 

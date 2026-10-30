@@ -79,6 +79,7 @@ PHYS.add("Kinematics",[
   speedLines(K,x-26,y-30,3,10+u*8,0.5);
   cyclist(K,x,y,x/13);
   K.arrow(x-8,y-84,x+40,y-84,{c:"heat",w:2.4});K.tag(`${F(p.a)} m/s²`,x+16,y-108,{c:"heat",size:11});
+  draw.loopFade(K,t,5.2);
 }}
 },
 
@@ -157,6 +158,7 @@ PHYS.add("Kinematics",[
   K.car(x,y,{brake:br,ang:x/9});
   if(u<1)K.tag(`${p.kmh} km/h`,x,y-64,{size:11});
   if(br&&u<4){K.arrow(x+18,y-66,x-24,y-66,{c:"heat",w:2.4});K.tag(`${p.dec} m/s²`,x+24,y-66,{align:"left",c:"heat",size:11});}
+  draw.loopFade(K,t,6.2);
 }}
 },
 
@@ -278,6 +280,7 @@ PHYS.add("Kinematics",[
   K.wheel(x-13,y-6,6,x/6);K.wheel(x+13,y-6,6,x/6);
   const L=Math.max(-60,Math.min(60,a*6));if(Math.abs(L)>4)K.arrow(x,y-66,x+L,y-66,{c:"heat",w:2.4});
   K.tag(`a(t) = ${p.A}t − ${p.B}`,30,28,{align:"left",size:12});K.tag(`v₀ = ${p.v0} m/s`,30,56,{align:"left",size:11});K.tag(`x₀ = ${p.x0} m`,30,84,{align:"left",size:11});
+  draw.loopFade(K,t,5.6);
 }}
 },
 
@@ -316,11 +319,11 @@ PHYS.add("Kinematics",[
   link:"The same two formulas run the up-and-down part of any projectile. Try “Thrown horizontally” on Medium next.",
   viz:viz.slider((p,c)=>({note:"Drag the time. The stone covers more ground every second, because it keeps speeding up.",label:"Time",unit:"s",min:0,max:R3(c.t),step:0.01,value:R3(c.t),
     bars:[{label:"Distance fallen",segs:[{cls:"seg-alt",frac:x=>0.5*g*x*x/p.h}]},{label:"Speed",segs:[{cls:"seg-ke",frac:x=>x/c.t}]}],read:x=>`After ${fmt(x)} s: fallen <b>${fmt(R3(0.5*g*x*x))} m</b>, speed <b>${fmt(R3(g*x))} m/s</b>`})),
-  scene:{still:1.2,draw(K,t,p){const u=mod(t,3.6),top=24,bot=196,k=(bot-top-14)/(1.6*1.6),y=u<1.6?top+0.5*k*u*u:bot-7;
+  scene:{still:1.2,draw(K,t,p){const u=mod(t,3.6),top=24,bot=196,k=2*(bot-7-top)/(1.6*1.6),y=u<1.6?top+0.5*k*u*u:bot-7;
     K.ground(bot,20,580);K.rect(150,top,90,bot-top,{fill:"bg",c:"ink",w:2});for(let i=0;i<5;i++)for(let j=0;j<2;j++)K.rect(166+j*38,top+14+i*32,20,18,{fill:"blueSoft",c:false});
     K.vdim(120,top,bot,`${p.h} m`);K.circle(262,y,7,{fill:"ink2",c:"ink",w:1.4});
     for(let k2=1;k2<=4;k2++){const tt=k2*0.4;if(tt<u&&tt<1.6)K.circle(262,top+0.5*k*tt*tt,3,{fill:"ink2",c:false,alpha:0.4});}
-    fade(K,u,3,3.6);}}
+    draw.loopFade(K,t,3.6,0.6,0.25);}}
 },
 
 /* ===== Thrown horizontally ===== */

@@ -401,6 +401,7 @@ PHYS.add("Oscillations",[
   K.rect(cx-24,y-16,48,32,{fill:"marker",c:"ink",w:1.6,r:3});K.text(`${p.m} kg`,cx,y,{size:11,bold:true,c:"#14244a"});
   for(let i=0;i<7;i++){const ph=mod(u*0.5+i*0.143,1),bx=232+i*22+4*Math.sin(u*3+i);K.circle(bx,210-ph*100,2+i%2,{c:"ink2",w:1,alpha:0.6*(1-ph)});}
   K.tag(`k = ${p.k} N/m`,120,40,{size:11});K.tag(`β = ${p.b} s⁻¹`,480,150,{size:11,c:"heat"});
+  draw.loopFade(K,t,5.6);
 }}
 },
 

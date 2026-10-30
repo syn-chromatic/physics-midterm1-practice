@@ -268,7 +268,10 @@ function pickBtnHTML(){
   return `<button class="qpick-btn${done?" is-done":""}${q?lvc(q.level):""}" data-act="pick" aria-expanded="${pickOpen}" aria-controls="qlist" aria-label="Choose a question: ${res?"Results":`question ${i+1}, ${t}`}"><span class="chip-n">${n}</span><span class="chip-t"><span class="chip-topic">${t}</span><span class="chip-s">${st}</span></span><span class="qpick-chev">${CHEV}</span></button>`;
 }
 function setPick(open){pickOpen=open;const el=$(".qpick");if(!el)return;el.classList.toggle("open",open);const bt=$(".qpick-btn",el);if(bt)bt.setAttribute("aria-expanded",String(open));
-  if(open){const list=$("#qlist"),cur=$("#qlist .is-cur");if(list&&cur)list.scrollTop=Math.max(0,cur.offsetTop-list.clientHeight/2+cur.offsetHeight/2);}}
+  if(!open){const list=$("#qlist");if(list)list.style.maxHeight="";}
+  if(open){const list=$("#qlist"),cur=$("#qlist .is-cur");   /* the list ends a little above the bottom of the screen, so its edge always shows */
+    if(list&&getComputedStyle(list).position==="absolute"){const room=window.innerHeight-list.getBoundingClientRect().top-18;list.style.maxHeight=Math.max(240,Math.min(560,room))+"px";}
+    if(list&&cur)list.scrollTop=Math.max(0,cur.offsetTop-list.clientHeight/2+cur.offsetHeight/2);}}
 function sideHTML(){
   return `<div class="qpick${pickOpen?" open":""}">${pickBtnHTML()}<nav class="${CFG.sets?"setnav":"chips"} qlist" id="qlist" aria-label="Questions">${navHTML()}</nav></div>
     <div class="sheet-bar">${CFG.random?`<button class="btn" data-act="random">Random question</button>`:""}${CFG.newAll?newAllHTML():""}<button class="btn btn-ghost" data-act="sheet" aria-expanded="${state.sheetOpen}" aria-controls="sheet">${state.sheetOpen?"Hide":"Show"} my formula sheet<span class="count">${sheetEntries().length}</span></button></div>
@@ -523,7 +526,7 @@ function renew(q){
   const f=freshQ(def,np);f.best=s.best;f.wins=s.wins;if(w!==undefined)f.which=w;state.qs[q.id]=f;resolve();
 }
 function onClick(e){
-  if(pickOpen&&!e.target.closest(".qpick"))setPick(false);
+  if(pickOpen&&(!e.target.closest(".qpick")||e.target.classList.contains("qpick")))setPick(false);   /* outside, or on the dimmed page */
   const b=e.target.closest("[data-act]");if(!b)return;
   const act=b.dataset.act,q=curQ(),s=q?state.qs[q.id]:null;
   if(act==="pick"){setPick(!pickOpen);return;}
@@ -634,7 +637,7 @@ function start(cfg){
 }
 
 window.HL={
-  version:10,start,selfTest,debug,
+  version:11,start,selfTest,debug,
   fmt,pick,near,
   mi,up,sb,ssp,OP,FR,SQ,EQ,CALC,HALF,sq2,neg,IMPLIES,AND,PAREN,PI,OMEGA,V0,VI,VF,KE,KEI,KEF,DKE,
   legend,steps,checkline,finalAns,watch,calcTip,

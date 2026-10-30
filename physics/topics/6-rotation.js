@@ -123,10 +123,11 @@ PHYS.add("Rotation",[
   for(let i=0;i<6;i++){const a=th+i*Math.PI/3;K.line(cx,cy,cx+(R-10)*Math.cos(a),cy+(R-10)*Math.sin(a),{w:2});}
   K.circle(cx,cy,7,{fill:"ink",c:false});
   const ra=-0.6;K.line(cx,cy,cx+R*Math.cos(ra),cy+R*Math.sin(ra),{c:"heat",w:1.6,dash:[4,3]});K.tag(`R = ${p.R} m`,cx+R*Math.cos(ra)+8,cy+R*Math.sin(ra)-14,{align:"left",size:11});
-  const bx=braking?cx+R+2:cx+R+18;K.rect(bx,cy-18,14,36,{fill:"ink2",c:"ink",w:1.4,r:3});K.line(bx+14,cy,bx+44,cy,{w:3});
+  const pad=u<1.7?16:u<2?16*(2-u)/0.3:u<5?0:u<5.3?16*(u-5)/0.3:16,bx=cx+R+2+pad;   /* the brake pad slides in and out */K.rect(bx,cy-18,14,36,{fill:"ink2",c:"ink",w:1.4,r:3});K.line(bx+14,cy,bx+44,cy,{w:3});
   if(braking){for(let i=0;i<4;i++){const k=mod(u*5+i*0.25,1);K.line(cx+R+2,cy+12+i*2,cx+R+2+12*k,cy+16+18*k,{c:"heat",w:1.4,alpha:1-k});}}
   if(u<2)curvedArrow(K,cx,cy,R+16,-2.3,-1.2);
   K.tag(`${p.M} kg`,cx,cy+R+18,{size:11});K.tag(u<2?`${p.w} rad/s`:braking?`stops in ${p.t} s`:"stopped",520,40,{size:11,c:braking?"bad":"ink"});
+  draw.loopFade(K,t,6.4);
 }}
 },
 

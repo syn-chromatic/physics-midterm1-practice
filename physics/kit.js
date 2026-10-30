@@ -57,6 +57,8 @@ function springScene(K,t,o){
   if(o.after)o.after(x,y,eq);
   return {x,y,eq};
 }
+/* hides a loop's restart: the picture fades out over the last `out` seconds of each loop and back in over the first `inn` */
+function loopFade(K,t,period,out=0.5,inn=0.3){const u=mod(t,period),a=u<inn?1-u/inn:u>period-out?(u-(period-out))/out:0;if(a>0)K.rect(0,0,K.W||600,K.H||220,{fill:"bg",c:false,alpha:Math.min(1,a)});}
 function block(K,x,y,w,h,label,o={}){K.rect(x-w/2,y-h,w,h,{fill:o.fill||"marker",c:"ink",w:1.6,r:3});if(label)K.text(label,x,y-h/2,{size:o.size||12,bold:true,c:"#14244a"});}
 function curvedArrow(K,cx,cy,r,a0,a1,o={}){const c=o.c||"heat",dir=a1>a0?1:-1;K.arc(cx,cy,r,a0,a1,{c,w:2,ccw:dir<0});
   const x=cx+r*Math.cos(a1),y=cy+r*Math.sin(a1),tx=-Math.sin(a1)*dir,ty=Math.cos(a1)*dir;K.arrow(x-tx*6,y-ty*6,x+tx*5,y+ty*5,{c,head:9});}
@@ -75,5 +77,5 @@ function add(topic,list){
 /* every question, sorted by topic (in the order given), then Easy → Medium → Hard, then the order they were added */
 const ordered=topics=>registry.map((q,i)=>({q,i})).sort((a,b)=>(topics.indexOf(a.q.topic)-topics.indexOf(b.q.topic))||(LEVELS.indexOf(a.q.level)-LEVELS.indexOf(b.q.level))||(a.i-b.i)).map(x=>x.q);
 
-return {add,ordered,LEVELS,R3,clean,pr,sumTxt,VIZ,draw:{F,mod,fadeIn,cyclist,speedLines,springScene,block,curvedArrow}};
+return {add,ordered,LEVELS,R3,clean,pr,sumTxt,VIZ,draw:{F,mod,fadeIn,loopFade,cyclist,speedLines,springScene,block,curvedArrow}};
 })();
