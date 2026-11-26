@@ -360,7 +360,7 @@ PHYS.add("Kinematics",[
   sheet:[{name:"Thrown horizontally",eq:`${TIME}${OP("=")}${SQ(FR(`2${HH}`,G9),true)},${OP("")}${XD}${OP("=")}${V0k}${TIME}`,note:"Sideways: steady speed. Downwards: free fall. Combine speeds with Pythagoras."}],
   takeEq:()=>`${XD}${OP("=")}${V0k}${SQ(FR(`2${HH}`,G9),true)}`,
   takeaway:"Sideways and downwards are separate: the fall gives the time, the steady sideways speed gives the distance, Pythagoras gives the landing speed.",
-  link:"HW 1 and HW 2 practise constant-acceleration motion; this is the same thing in two directions at once.",
+  link:"Any projectile question splits the same way: steady speed sideways, free fall downwards. Try “Projectile at an angle” on Hard next.",
   viz:viz.slider((p,c)=>({note:"Drag the time. Sideways the ball covers the same distance every second; downwards it falls further every second.",label:"Time",unit:"s",min:0,max:R3(c.t),step:0.01,value:R3(c.t),
     bars:[{label:"Sideways distance",segs:[{cls:"seg-ke",frac:x=>x/c.t}]},{label:"Distance fallen",segs:[{cls:"seg-alt",frac:x=>x*x/(c.t*c.t)}]}],read:x=>`After ${fmt(x)} s: <b>${fmt(R3(p.v0*x))} m</b> out, <b>${fmt(R3(0.5*g*x*x))} m</b> down`})),
   scene:{still:2.2,draw(K,t,p){const u=mod(t,4.2),c0=Math.sqrt(2*p.h/g),ex=118,top=34,bot=196,sc=Math.min(420/(p.v0*c0),(bot-top)/p.h);

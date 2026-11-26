@@ -16,7 +16,7 @@ Questions are shown grouped by topic (in the order of `TOPICS` in `start.js`), t
 
 ## Add a question to an existing topic
 
-Open the topic's file in `physics/topics/` and add one object to the list inside `PHYS.add("Topic", [ … ])`. The easiest start is to copy a question at the same level and change it. `nl-push` in `3-newtons-laws.js` is the shortest complete example.
+Open the topic's file in `physics/topics/` and add one object to the list inside `PHYS.add("Topic", [ … ])`. The easiest start is to copy a question at the same level and change it. `nl-push` in `3-newtons-laws.js` is a short, complete example, and it's the one shown below.
 
 ```js
 {
@@ -26,7 +26,7 @@ Open the topic's file in `physics/topics/` and add one object to the list inside
   hw:"Course topic: Newton's second law",   // small label above the question
 
   base:{m:4,F:10},                                          // the first numbers shown
-  random:()=>({m:pick([2,3,4,5,6]),F:pick([6,8,10,12])}),   // new numbers ("New numbers" button)
+  random:()=>({m:pick([2,3,4,5,6,8,10,12]),F:pick([6,8,10,12,15,18,20,24,30,36])}),   // new numbers ("New numbers" button)
   calc:p=>({Fg:p.m*g,FN:p.m*g,a:p.F/p.m}),                  // every result, worked out once
 
   // G("m", …) marks a number the student lists in hint 1; T("weight", …) is a tappable word
@@ -63,7 +63,7 @@ Rules that keep things working:
 
 - Traps are `[wrong value, message]`. Wrap the list in `clean(list, rightAnswer)` so a trap that lands on the right answer is dropped.
 - The animation must not give away the answer. It shows the situation, not the result.
-- Symbols (like `MM`, `AA`) and `const g=9.8` sit at the top of each topic file; add new ones there.
+- Symbols (like `MM`, `AA`) sit at the top of each topic file; add new ones there. Files that use gravity also define `const g=9.8` there; add it if your topic needs g and the file doesn't have it yet.
 
 ## Add a new topic
 
@@ -72,7 +72,7 @@ Rules that keep things working:
    PHYS.add("Your topic",[ { …question… }, { …question… } ]);
    })();
    ```
-2. In `index.html`, add `<script src="physics/topics/9-your-topic.js?v=11"></script>` before `physics/start.js`.
+2. In `index.html`, add `<script src="physics/topics/9-your-topic.js?v=12"></script>` before `physics/start.js`.
 3. In `physics/start.js`, add `"Your topic"` to `TOPICS` where it should appear in the list.
 
 ## Check your work
@@ -85,4 +85,4 @@ HL.selfTest()
 
 It tries every question with its first numbers and 60 random sets, and lists anything wrong: a missing field, a number that isn't a number, a trap equal to the right answer, a marked number with no matching `given` entry. An empty list `[]` means all good.
 
-When you change a file, raise the `?v=11` in `index.html` (for example to `?v=12`) so browsers load the new version.
+When you change a file, raise the `?v=12` in `index.html` (for example to `?v=13`) so browsers load the new version.

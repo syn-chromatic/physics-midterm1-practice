@@ -17,6 +17,7 @@ const DEG="Set your calculator to degrees (DEG) before using sin and cos.";
 const radTrap=v=>[v,"Your calculator is in radians. Switch it to degrees (DEG) and work it out again."];
 const TERMS={
   smooth:["Smooth","No friction. Nothing rubs against the object to slow it down."],
+  frictionless:["Frictionless","No friction. Nothing rubs against the object to slow it down."],
   weight:["Weight","The pull of gravity on an object: mass × g, where g = 9.8 m/s². It's a force, so it's measured in newtons (N), not kilograms."],
   normal:["Normal force","The push of a surface on whatever rests on it, straight out of the surface. \"Normal\" means at 90° to the surface."],
   tension:["Tension","The pull along a rope, cord or cable. It can only pull, never push, and in a light cord it's the same all along its length."],
@@ -180,8 +181,8 @@ PHYS.add("Newton's laws",[
   base:{m:3.5,al:35,T:35},
   random:()=>{const m=pick([2,2.5,3,3.5,4,5]),al=pick([20,25,30,35,40]);return {m,al,T:Math.round(m*g*sin(al)+m*pick([1,1.5,2,3,4]))};},
   calc:p=>{const Fg=p.m*g,FNv=Fg*cos(p.al),along=Fg*sin(p.al);return {Fg,FN:FNv,along,a:(p.T-along)/p.m};},
-  text:(p,G,T)=>`A ${G("m",`${p.m} kg`)} box is pulled by a cord along a ${T("smooth","frictionless")} ${T("incline","plane inclined")} at ${G("al",`α = ${p.al}°`)}. The cord runs parallel to the ramp and pulls with ${G("T",`T = ${p.T} N`)}. What are the sizes of all the forces on the box: (a) its weight and (b) the ${T("normal","normal force")} from the ramp (the cord's pull is ${p.T} N)? (c) What is the box's acceleration along the ramp?`,
-  terms:{smooth:TERMS.smooth,incline:TERMS.incline,normal:TERMS.normal},
+  text:(p,G,T)=>`A ${G("m",`${p.m} kg`)} box is pulled by a cord along a ${T("frictionless","frictionless")} ${T("incline","plane inclined")} at ${G("al",`α = ${p.al}°`)}. The cord runs parallel to the ramp and pulls with ${G("T",`T = ${p.T} N`)}. What are the sizes of all the forces on the box: (a) its weight and (b) the ${T("normal","normal force")} from the ramp (the cord's pull is ${p.T} N)? (c) What is the box's acceleration along the ramp?`,
+  terms:{frictionless:TERMS.frictionless,incline:TERMS.incline,normal:TERMS.normal},
   given:p=>[
     {k:"m",sym:MM,name:"mass of the box",unit:"kg",val:p.m,why:"Gives the weight and goes into F = ma.",look:"The number measured in kg."},
     {k:"al",sym:AL,name:"angle of the ramp",unit:"°",val:p.al,why:"Measured from the horizontal.",look:"The angle in degrees."},
@@ -296,7 +297,7 @@ PHYS.add("Newton's laws",[
     {id:"FN",label:"(a) Normal force",sym:FN,unit:"N",ans:(p,c)=>c.FN,traps:(p,c)=>clean([[p.m*g,"On a ramp the normal force is only the part of the weight pressing into it: mg cos α."],[c.along,"That's the part along the ramp (sin). Into the ramp is mg cos α."],radTrap(p.m*g*Math.cos(p.al))],c.FN)},
     {id:"f",label:"(b) Friction force",sym:FK,unit:"N",ans:(p,c)=>c.f,traps:(p,c)=>clean([[p.mu*p.m*g,"Friction is μ × the normal force, and on a ramp that's mg cos α, not mg."],[p.mu*c.along,"Use the normal force (cos), not the part along the ramp (sin)."]],c.f)},
     {id:"a",label:"(c) Acceleration down the ramp",sym:AA,unit:"m/s²",ans:(p,c)=>c.a,traps:(p,c)=>clean([[g*sin(p.al),"That's with no friction. Friction slows it: subtract μg cos α."],[g*(sin(p.al)+p.mu*cos(p.al)),"Friction points up the slope, against the sliding: subtract it."],[g*(cos(p.al)-p.mu*sin(p.al)),"sin and cos are swapped: along the ramp is g sin α, friction uses g cos α."],[g*(sin(p.al)-p.mu),"Friction is μ × normal force = μmg cos α, so a = g(sin α − μ cos α)."],[c.along-c.f,"That's the net force in N. Divide by the mass to get the acceleration."]],c.a)},
-    {id:"v",label:"(d) Speed after sliding the distance",sym:VV,unit:"m/s",ans:(p,c)=>c.v,traps:(p,c)=>clean([[2*c.a*p.d,"That's v². Take the square root."],[c.a*p.d,"v² = 2ad, so v = √(2ad)."],[Math.sqrt(2*g*sin(p.al)*p.d),"That's the speed without friction. Use the acceleration from part (c)."]],c.v)}
+    {id:"v",label:p=>`(d) Speed after sliding ${p.d} m`,sym:VV,unit:"m/s",ans:(p,c)=>c.v,traps:(p,c)=>clean([[2*c.a*p.d,"That's v². Take the square root."],[c.a*p.d,"v² = 2ad, so v = √(2ad)."],[Math.sqrt(2*g*sin(p.al)*p.d),"That's the speed without friction. Use the acceleration from part (c)."]],c.v)}
   ],
   idea:()=>`<p>Tilt your directions with the ramp, as for any ramp: along it and straight out of it. The weight splits into mg sin α along the ramp (down the slope) and mg cos α into the ramp.</p>
     <ul class="plain"><li><b>Out of the ramp:</b> nothing moves that way, so F_N = mg cos α.</li><li><b>Friction:</b> f = μ × F_N, pointing up the slope (against the sliding).</li><li><b>Along the ramp:</b> mg sin α − f = ma. The mass cancels: a = g(sin α − μ cos α).</li></ul>

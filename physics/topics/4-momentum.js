@@ -273,7 +273,7 @@ PHYS.add("Momentum",[
       [c.u1,"That's ball 1's velocity. Ball 2 uses 2m₁ ÷ (m₁ + m₂) × v₁."]
     ],c.u2)},
     {id:"J",label:"(c) Size of the impulse on ball 1",sym:JJ,unit:"N·s",ans:(p,c)=>c.J,traps:(p,c)=>clean([
-      c.u1<0?[p.m1*(p.v1-Math.abs(c.u1)),`Watch the direction. Ball 1 goes from +${p.v1} to ${fmt(c.u1)} m/s, which is a change of ${fmt(p.v1-c.u1)} m/s, not ${fmt(p.v1+c.u1)}.`]:null,
+      c.u1<0?[p.m1*(p.v1-Math.abs(c.u1)),`Watch the direction. Ball 1 goes from +${p.v1} to ${neg(fmt(c.u1))} m/s, which is a change of ${fmt(p.v1-c.u1)} m/s, not ${fmt(p.v1+c.u1)}.`]:null,
       [p.m1*p.v1,"That's ball 1's momentum before. Impulse is the change: m₁v₁′ − m₁v₁."],
       [Math.abs(p.m1*c.u1),"That's ball 1's momentum after. Impulse is the change: m₁v₁′ − m₁v₁."],
       [c.Jst,"That's the impulse if the balls had stuck together (like the clay question). Bouncing apart changes the momentum more."]
@@ -300,11 +300,11 @@ PHYS.add("Momentum",[
     calcTip(`(${p.m1}-${p.m2})/(${p.m1}+${p.m2})*${p.v1}`),
   solution:(p,c)=>steps([
       ["Write down what you know",`${M1} = ${p.m1} kg, &nbsp;${V1} = ${p.v1} m/s, &nbsp;${M2} = ${p.m2} kg, &nbsp;${V2} = 0.`],
-      ["(a) Ball 1 after",CALC(`${V1P} = (${p.m1} − ${p.m2}) ÷ (${p.m1} + ${p.m2}) × ${p.v1} = ${fmt(p.m1-p.m2)} ÷ ${fmt(c.M)} × ${p.v1} = <b>${fmt(c.u1)} m/s</b>`)+`<p class="small">${c.u1<0?"Negative: ball 1 bounces back.":"Positive: ball 1 keeps rolling forward, just slower."}</p>`],
+      ["(a) Ball 1 after",CALC(`${V1P} = (${p.m1} − ${p.m2}) ÷ (${p.m1} + ${p.m2}) × ${p.v1} = ${neg(fmt(p.m1-p.m2))} ÷ ${fmt(c.M)} × ${p.v1} = <b>${neg(fmt(c.u1))} m/s</b>`)+`<p class="small">${c.u1<0?"Negative: ball 1 bounces back.":"Positive: ball 1 keeps rolling forward, just slower."}</p>`],
       ["(b) Ball 2 after",CALC(`${V2P} = 2 × ${p.m1} ÷ (${p.m1} + ${p.m2}) × ${p.v1} = <b>${fmt(c.u2)} m/s</b>`)],
-      ["(c) Change in ball 1's momentum",CALC(`${JJ} = ${p.m1} × ${pr(c.u1)} − ${p.m1} × ${p.v1} = ${fmt(p.m1*c.u1)} − ${fmt(p.m1*p.v1)} = −${fmt(c.J)} N·s`)+`<p class="small">The size is <b>${fmt(c.J)} N·s</b>. The minus sign means the push on ball 1 points backwards.</p>`]
+      ["(c) Change in ball 1's momentum",CALC(`${JJ} = ${p.m1} × ${pr(c.u1)} − ${p.m1} × ${p.v1} = ${neg(fmt(p.m1*c.u1))} − ${fmt(p.m1*p.v1)} = −${fmt(c.J)} N·s`)+`<p class="small">The size is <b>${fmt(c.J)} N·s</b>. The minus sign means the push on ball 1 points backwards.</p>`]
     ])+checkline(`Momentum before: ${p.m1} × ${p.v1} = ${fmt(p.m1*p.v1)}. After: ${p.m1} × ${pr(c.u1)} + ${p.m2} × ${fmt(c.u2)} = ${fmt(p.m1*c.u1+p.m2*c.u2)} ✓<br>Kinetic energy before: ½ × ${p.m1} × ${sq2(p.v1)} = ${fmt(0.5*p.m1*p.v1*p.v1)} J. After: ½ × ${p.m1} × ${sq2(pr(c.u1))} + ½ × ${p.m2} × ${sq2(fmt(c.u2))} = ${fmt(0.5*p.m1*c.u1*c.u1+0.5*p.m2*c.u2*c.u2)} J ✓<br>Fun fact: this impulse is exactly twice what it would be if the balls stuck together (${fmt(c.Jst)} N·s).`)+
-    finalAns(`${V1P} = ${fmt(c.u1)} m/s, &nbsp;${V2P} = ${fmt(c.u2)} m/s, &nbsp;${JJ} = ${fmt(c.J)} N·s`),
+    finalAns(`${V1P} = ${neg(fmt(c.u1))} m/s, &nbsp;${V2P} = ${fmt(c.u2)} m/s, &nbsp;${JJ} = ${fmt(c.J)} N·s`),
   sheet:[
     {name:"Elastic collision, ball 2 at rest: ball 1",eq:`${V1P}${OP("=")}${FR(`${M1}${OP("−")}${M2}`,`${M1}${OP("+")}${M2}`)}${V1}`,note:"Negative means it bounces back."},
     {name:"Elastic collision, ball 2 at rest: ball 2",eq:`${V2P}${OP("=")}${FR(`2${M1}`,`${M1}${OP("+")}${M2}`)}${V1}`,note:"Momentum AND kinetic energy are conserved."}
@@ -381,7 +381,7 @@ PHYS.add("Momentum",[
   plug:p=>EQ(`${PB}${OP("=")}${p.m}${OP("×")}${p.v1}`)+EQ(`${JJ}${OP("=")}${p.m}${OP("×")}(${p.v1}${OP("+")}${p.v2})`)+EQ(`${FAV}${OP("=")}${FR(JJ,p.dt)}`),
   solution:(p,c)=>steps([
       ["(a) Momentum before",CALC(`${PB} = ${p.m} × ${p.v1} = <b>${fmt(c.p1)} kg·m/s</b>`)],
-      ["(b) Change in momentum",CALC(`after − before = ${p.m} × (−${p.v2}) − ${p.m} × ${p.v1} = ${fmt(-p.m*p.v2)} − ${fmt(c.p1)} = −${fmt(c.J)} kg·m/s`)+`<p class="small">Size: <b>${fmt(c.J)} N·s</b>. The minus sign means the wall pushes the ball away from itself.</p>`],
+      ["(b) Change in momentum",CALC(`after − before = ${p.m} × (−${p.v2}) − ${p.m} × ${p.v1} = ${neg(fmt(-p.m*p.v2))} − ${fmt(c.p1)} = −${fmt(c.J)} kg·m/s`)+`<p class="small">Size: <b>${fmt(c.J)} N·s</b>. The minus sign means the wall pushes the ball away from itself.</p>`],
       ["(c) Average force",CALC(`${FAV} = ${fmt(c.J)} ÷ ${p.dt} = <b>${fmt(c.F)} N</b>`)]
     ])+checkline(`If the ball had stopped dead instead of bouncing, the impulse would be only ${fmt(c.p1)} N·s. Bouncing back adds another ${fmt(p.m*p.v2)} N·s ✓`)+
     finalAns(`${PB} = ${fmt(c.p1)} kg·m/s, &nbsp;${JJ} = ${fmt(c.J)} N·s, &nbsp;${FAV} = ${fmt(c.F)} N`),

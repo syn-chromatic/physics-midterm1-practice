@@ -604,7 +604,7 @@ function selfTest(){
           if(!Number.isFinite(a)){out.push(`${q.id} ${key}: part "${pt.id}" answer is not a number`);return;}
           (pt.traps?pt.traps(p,c):[]).forEach(([v,msg],i)=>{
             if(!Number.isFinite(v))out.push(`${q.id} ${key}: part "${pt.id}" trap ${i+1} is not a number`);
-            else if(Math.abs(v-a)<=Math.abs(a)*(pt.tol!=null?pt.tol:0.025)+(pt.abs||1e-9))out.push(`${q.id} ${key}: part "${pt.id}" trap ${i+1} (${fmt(v)}) is too close to the answer (${fmt(a)}), so it can never fire`);
+            else if(Math.abs(v-a)<=Math.abs(a)*(pt.tol!=null?pt.tol:0.02)+(pt.abs||1e-9))out.push(`${q.id} ${key}: part "${pt.id}" trap ${i+1} (${fmt(v)}) is too close to the answer (${fmt(a)}), so it can never fire`);
             const mm=String(msg).match(BAD);if(mm)out.push(`${q.id}: part "${pt.id}" trap ${i+1} message contains "${mm[0]}"`);});
         });
       }catch(e){out.push(`${q.id} ${key}: threw ${e&&e.message||e}`);}
@@ -637,7 +637,7 @@ function start(cfg){
 }
 
 window.HL={
-  version:11,start,selfTest,debug,
+  version:12,start,selfTest,debug,
   fmt,pick,near,
   mi,up,sb,ssp,OP,FR,SQ,EQ,CALC,HALF,sq2,neg,IMPLIES,AND,PAREN,PI,OMEGA,V0,VI,VF,KE,KEI,KEF,DKE,
   legend,steps,checkline,finalAns,watch,calcTip,

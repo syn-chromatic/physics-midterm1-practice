@@ -319,7 +319,7 @@ PHYS.add("Waves",[
       [10*Math.log10(c.I),"Divide by I₀ before taking the log: β = 10 log(I ÷ I₀)."],
       [20*Math.log10(c.I/1e-12),"Use 10 × log for intensity."]
     ],c.b)},
-    {id:"b2",label:"(c) Sound level at the second distance",sym:B2,unit:"dB",ans:(p,c)=>c.b2,traps:(p,c)=>clean([
+    {id:"b2",label:p=>`(c) Sound level ${p.r2} m away`,sym:B2,unit:"dB",ans:(p,c)=>c.b2,traps:(p,c)=>clean([
       [c.b-10*Math.log10(p.r2/p.r),`Close, but the intensity falls with distance squared. Going ${fmt(p.r2/p.r)} times further makes it ${fmt((p.r2/p.r)**2)} times weaker, so the level drops by 10 log(${fmt((p.r2/p.r)**2)}) dB.`],
       [c.b*p.r/p.r2,"Decibels don't scale like that. Work out the new intensity first, then the new level."],
       [c.b,"It's further away, so it must be quieter."],
@@ -463,7 +463,7 @@ PHYS.add("Waves",[
   parts:[
     {id:"v",label:"(a) Wave speed",sym:VWV,unit:"m/s",ans:(p,c)=>c.v,traps:(p,c)=>clean([[Math.sqrt(p.F/(p.mg/p.L)),`Change grams to kilograms first: ${p.mg} g = ${p.mg/1000} kg.`],[Math.sqrt(p.F/(p.mg/1000)),"Use the mass per metre, μ = m ÷ L, not the whole mass."],[p.F/c.mu,"Take the square root: v = √(F ÷ μ)."],[Math.sqrt(p.F*c.mu),"Divide the tension by μ: v = √(F ÷ μ)."]],c.v)},
     {id:"f1",label:"(b) Fundamental frequency",sym:F1,unit:"Hz",ans:(p,c)=>c.f1,traps:(p,c)=>clean([[c.v/p.L,"In the fundamental, half a wavelength fits on the string: λ = 2L, so f = v ÷ 2L."],[c.v/(4*p.L),"Both ends are fixed, so λ = 2L (not 4L): f = v ÷ 2L."],[c.v*2*p.L,"Divide: f = v ÷ λ = v ÷ 2L."]],c.f1)},
-    {id:"F2",label:"(c) Tension for the new frequency",sym:FTEN2,unit:"N",ans:(p,c)=>c.F2,traps:(p,c)=>clean([[p.F*p.fp/c.f1,"The frequency grows with the square root of the tension, so the tension grows with the frequency squared: F′ = F(f′/f)²."],[p.F*Math.sqrt(p.fp/c.f1),"Square the frequency ratio, don't take its root: F′ = F(f′/f)²."],[p.F*Math.pow(c.f1/p.fp,2),"Upside down: a higher note needs more tension, F′ = F(f′/f)²."]],c.F2)}
+    {id:"F2",label:p=>`(c) Tension for a ${p.fp} Hz fundamental`,sym:FTEN2,unit:"N",ans:(p,c)=>c.F2,traps:(p,c)=>clean([[p.F*p.fp/c.f1,"The frequency grows with the square root of the tension, so the tension grows with the frequency squared: F′ = F(f′/f)²."],[p.F*Math.sqrt(p.fp/c.f1),"Square the frequency ratio, don't take its root: F′ = F(f′/f)²."],[p.F*Math.pow(c.f1/p.fp,2),"Upside down: a higher note needs more tension, F′ = F(f′/f)²."]],c.F2)}
   ],
   idea:()=>`<p>The speed of a wave on a string depends on how tight it is and how heavy each metre of it is: v = √(F ÷ μ), where μ = m ÷ L is the mass per metre (in kg/m).</p>
     <p>The fundamental is the lowest standing wave: with both ends fixed, half a wavelength fits on the string, so λ = 2L and f = v ÷ 2L.</p>

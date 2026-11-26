@@ -101,7 +101,7 @@ PHYS.add("Vectors",[
   ],
   takeEq:()=>`cos${OP("")}${mi("θ")}${OP("=")}${FR(`${VA}·${VB}`,`|${VA}||${VB}|`)}`,
   takeaway:"Dot product: multiply matching components and add. Divide by both lengths to get cos θ. Cross product size: |a||b| sin θ.",
-  link:"HW 1, task 5 is part (b) backwards: you're given the dot product and both lengths, and you find the angle with cos θ = a·b ÷ (|a||b|). HW 1, task 4 asks for a + b (add matching components) and a × b (use the component formula from hint 3).",
+  link:"HW 1, task 5 is part (b) with the first step done for you: you're given the dot product and both lengths, and you find the angle with cos θ = a·b ÷ (|a||b|). HW 1, task 4 asks for a + b (add matching components) and a × b (use the component formula from hint 3).",
   viz:{
     html:(p,c)=>`<p class="sec-note">Two arrows with the same lengths as your vectors (${fmt(c.A)} and ${fmt(c.B)}). Drag the angle between them. The dot product drops to 0 at 90° and turns negative after that. The cross product's size is the shaded area.</p>
       <div class="viz-box">

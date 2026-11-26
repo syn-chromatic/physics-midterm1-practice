@@ -161,7 +161,7 @@ PHYS.add("Oscillations",[
       [c.T/Math.SQRT2,"Mass isn't in the pendulum formula, so the period stays the same."],
       [c.T/2,"Mass isn't in the pendulum formula, so the period stays the same."]
     ],c.T)},
-    {id:"L2",label:"(c) String length for the wanted period",sym:L2,unit:"m",ans:(p,c)=>c.L2,traps:(p,c)=>clean([
+    {id:"L2",label:p=>`(c) String length for a period of ${p.T2} s`,sym:L2,unit:"m",ans:(p,c)=>c.L2,traps:(p,c)=>clean([
       [c.g*p.T2*p.T2/(2*Math.PI),"Square the 2π too: L = g T² ÷ (2π)² = g T² ÷ (4π²)."],
       [c.g*p.T2/(4*Math.PI*Math.PI),"Square the period too: L = g T² ÷ (4π²)."],
       [p.T2*p.T2/(4*Math.PI*Math.PI*c.g),"Upside down with g. L = g T² ÷ (4π²): g goes on top."],
@@ -533,14 +533,14 @@ PHYS.add("Oscillations",[
       [p.t1/Math.log(p.A0/p.A1),"Upside down. That's 1/β (called the time constant). β = ln(A₀ ÷ A) ÷ t."],
       [(p.A0/p.A1)/p.t1,"Take ln of the ratio first: β = ln(A₀ ÷ A) ÷ t."]
     ],c.b)},
-    {id:"A2",label:"(b) Amplitude at the second time, in cm",sym:sb(mi("A"),"2"),unit:"cm",ans:(p,c)=>c.A2,traps:(p,c)=>clean([
+    {id:"A2",label:p=>`(b) Amplitude ${p.t2} s after release, in cm`,sym:sb(mi("A"),"2"),unit:"cm",ans:(p,c)=>c.A2,traps:(p,c)=>clean([
       [c.A2/100,"That's in metres. The question asks for cm."],
       [p.A0-(p.A0-p.A1)/p.t1*p.t2,"The amplitude doesn't fall in a straight line. It decays exponentially: A = A₀e^(−βt)."],
       [p.A0*Math.exp(c.b*p.t2),"The exponent needs a minus sign, A = A₀e^(−βt), because the amplitude shrinks."],
       [p.A1*Math.exp(-c.b*p.t2),`Start from the amplitude at t = 0 (A₀ = ${p.A0} cm), not the one at ${p.t1} s.`],
       [p.A0*Math.exp(-c.b*(p.t2-p.t1)),`Use the whole time since it was let go, ${p.t2} s, in the exponent.`]
     ],c.A2)},
-    {id:"dE",label:"(c) Energy lost in the first part",sym:DE,unit:"J",ans:(p,c)=>c.dE,traps:(p,c)=>clean([
+    {id:"dE",label:p=>`(c) Energy lost in the first ${p.t1} s`,sym:DE,unit:"J",ans:(p,c)=>c.dE,traps:(p,c)=>clean([
       [0.5*p.k*((p.A0-p.A1)/100)**2,"Work out each energy first, then subtract: ½kA₀² − ½kA₁². Don't square the difference."],
       [c.E0,`That's the energy at the start. Subtract the energy that's left after ${p.t1} s.`],
       [c.E1,"That's the energy that's left. The question asks how much was lost."],
